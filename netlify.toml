@@ -1,0 +1,6 @@
+[build]
+  command = "npm install && npx vite build && npm run db:migrate"
+  publish = ".vercel/output/static"
+
+[build.environment]
+  NODE_VERSION = "22"

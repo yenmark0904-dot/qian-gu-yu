@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>墨痕</title>
+  <defs>
+    <radialGradient id="mh-body" cx="40%" cy="34%" r="72%">
+      <stop offset="0" stop-color="#4a3424"/>
+      <stop offset="0.38" stop-color="#2a1c13"/>
+      <stop offset="0.78" stop-color="#110b07"/>
+      <stop offset="1" stop-color="#050302"/>
+    </radialGradient>
+    <radialGradient id="mh-glow" cx="56%" cy="60%" r="44%">
+      <stop offset="0" stop-color="#d98a5c" stop-opacity="0.32"/>
+      <stop offset="0.6" stop-color="#a24a2c" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#a24a2c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mh-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbeab5"/>
+      <stop offset="0.3" stop-color="#d9a84c"/>
+      <stop offset="0.55" stop-color="#8c5e1c"/>
+      <stop offset="0.78" stop-color="#e8c272"/>
+      <stop offset="1" stop-color="#7a4f15"/>
+    </linearGradient>
+    <linearGradient id="mh-ink" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#000" stop-opacity="0.95"/>
+      <stop offset="0.7" stop-color="#0b0705"/>
+      <stop offset="1" stop-color="#1a110b" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="mh-edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe7b0" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#c48a3a" stop-opacity="0.35"/>
+    </linearGradient>
+    <radialGradient id="mh-shine" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mh-seal" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#f08a6c"/>
+      <stop offset="1" stop-color="#9c2a1c"/>
+    </radialGradient>
+    <clipPath id="mh-disc"><circle cx="32" cy="32" r="27.6"/></clipPath>
+  </defs>
+  <circle cx="32" cy="33.2" r="30.6" fill="#000" opacity="0.35"/>
+  <circle cx="32" cy="32" r="30" fill="url(#mh-gold)"/>
+  <circle cx="32" cy="32" r="28.4" fill="#2a1a08" opacity="0.65"/>
+  <circle cx="32" cy="32" r="27.6" fill="url(#mh-body)"/>
+  <g clip-path="url(#mh-disc)">
+    <circle cx="32" cy="32" r="27.6" fill="url(#mh-glow)"/>
+    <!-- one dry-brush sweep: thick press, thinning tail with split bristles -->
+    <path d="M13.2 40.6c3.4-7.8 10.6-14.2 19.4-16.4 5.6-1.4 11.4-1 16.6 1.4 1.6 0.8 1.2 2.6-0.6 2.4-4.6-0.6-9.6 0.2-14 2.4-5.8 2.8-10.6 7.6-14.6 12.6-2.6 3.2-7.6 1.4-6.8-2.4z" fill="#000" opacity="0.55" transform="translate(0.6 0.9)"/>
+    <path d="M13.2 40.6c3.4-7.8 10.6-14.2 19.4-16.4 5.6-1.4 11.4-1 16.6 1.4 1.6 0.8 1.2 2.6-0.6 2.4-4.6-0.6-9.6 0.2-14 2.4-5.8 2.8-10.6 7.6-14.6 12.6-2.6 3.2-7.6 1.4-6.8-2.4z" fill="url(#mh-ink)"/>
+    <path d="M14.6 39.4c3.6-7.4 10.4-13.2 18.6-15.2 5.2-1.2 10.6-0.8 15.4 1.2" fill="none" stroke="url(#mh-edge)" stroke-width="0.8" stroke-linecap="round"/>
+    <g fill="none" stroke="#120b07" stroke-linecap="round" stroke-width="0.7" opacity="0.9">
+      <path d="M44 27.4c2.4-0.1 4.6 0.2 6.4 0.9"/>
+      <path d="M42.6 29.2c2.6-0.3 5-0.1 7 0.5"/>
+    </g>
+    <!-- ink droplet -->
+    <path d="M37.6 41.2c0-2.4 2.4-5.4 2.4-5.4s2.4 3 2.4 5.4a2.4 2.4 0 0 1-4.8 0z" fill="#070403"/>
+    <path d="M38.6 40.4c0.2-1.2 0.9-2.4 1.4-3.2" fill="none" stroke="#ffe7b0" stroke-opacity="0.55" stroke-width="0.6" stroke-linecap="round"/>
+    <!-- tiny cinnabar seal -->
+    <rect x="43.2" y="40.6" width="6.4" height="6.4" rx="1" fill="url(#mh-seal)" transform="rotate(-8 46.4 43.8)"/>
+    <path d="M44.8 42.6h3.2M44.8 44.4h3.2M46.4 42.2v4.2" stroke="#ffd9c8" stroke-opacity="0.75" stroke-width="0.6" transform="rotate(-8 46.4 43.8)"/>
+    <ellipse cx="23" cy="17.5" rx="10" ry="5.4" fill="url(#mh-shine)" transform="rotate(-28 23 17.5)" opacity="0.55"/>
+    <circle cx="19.4" cy="16.2" r="1.2" fill="#fff" opacity="0.65"/>
+  </g>
+  <circle cx="32" cy="32" r="27.6" fill="none" stroke="#f0c39a" stroke-opacity="0.18" stroke-width="0.8"/>
+  <path d="M4.55 22A29.2 29.2 0 0 1 22 4.55" fill="none" stroke="#fff6d6" stroke-opacity="0.75" stroke-width="0.8" stroke-linecap="round"/>
+</svg>

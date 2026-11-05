@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+.node_modules.lock
+
+# build / deploy output
+dist/
+build/
+.output/
+.vinxi/
+.tanstack/
+.nitro/
+.vercel/
+.netlify/
+*.tsbuildinfo
+coverage/
+
+# env & local platform state (never commit)
+.env
+.env.*
+!.env.example
+.project_id
+.grok/
+
+# local scratch: screenshots, attachments, generated artifacts, test saves, logs
+screenshots/
+attachments/
+artifacts/
+test-results/
+playwright-report/
+*.log
+*.tmp
+*.zip
+*.tgz
+save*.json
+*.save.json
+.DS_Store
+Thumbs.db

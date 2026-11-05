@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>墨玉</title>
+  <defs>
+    <radialGradient id="body" cx="40%" cy="34%" r="70%">
+      <stop offset="0" stop-color="#1f4639"/>
+      <stop offset="0.35" stop-color="#0f2820"/>
+      <stop offset="0.75" stop-color="#06100c"/>
+      <stop offset="1" stop-color="#020504"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="54%" cy="62%" r="42%">
+      <stop offset="0" stop-color="#5cc497" stop-opacity="0.42"/>
+      <stop offset="0.55" stop-color="#2e8a66" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#2e8a66" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbeab5"/>
+      <stop offset="0.3" stop-color="#d9a84c"/>
+      <stop offset="0.55" stop-color="#8c5e1c"/>
+      <stop offset="0.78" stop-color="#e8c272"/>
+      <stop offset="1" stop-color="#7a4f15"/>
+    </linearGradient>
+    <linearGradient id="carve" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a9e6c8" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#4f9e7e" stop-opacity="0.3"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pool" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#4fbf92" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#4fbf92" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="disc"><circle cx="32" cy="32" r="27.6"/></clipPath>
+  </defs>
+  <!-- soft outer shadow -->
+  <circle cx="32" cy="33.2" r="30.6" fill="#000" opacity="0.35"/>
+  <!-- thin gold rim -->
+  <circle cx="32" cy="32" r="30" fill="url(#gold)"/>
+  <circle cx="32" cy="32" r="28.4" fill="#2a1a08" opacity="0.65"/>
+  <!-- jade body -->
+  <circle cx="32" cy="32" r="27.6" fill="url(#body)"/>
+  <g clip-path="url(#disc)">
+    <circle cx="32" cy="32" r="27.6" fill="url(#glow)"/>
+    <!-- carved ink swirl: engraved shadow then lit edge -->
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.5 37.5c1.2-9.6 9.8-16 18.6-14.6 7.2 1.1 10.2 8.4 6.1 12.6-3.3 3.4-9.1 1.8-9.1-2.4 0-2.9 3.6-4 5.3-1.8" stroke="#000" stroke-opacity="0.55" stroke-width="1.7" transform="translate(0.5 0.7)"/>
+      <path d="M14.5 37.5c1.2-9.6 9.8-16 18.6-14.6 7.2 1.1 10.2 8.4 6.1 12.6-3.3 3.4-9.1 1.8-9.1-2.4 0-2.9 3.6-4 5.3-1.8" stroke="url(#carve)" stroke-width="1.05"/>
+      <path d="M33.5 47.2c5.2 0.6 9.6-1.4 11.4-5.4 1.2-2.7-0.9-5.3-3.4-4.2-1.7 0.8-1.6 3 0.1 3.4" stroke="#000" stroke-opacity="0.5" stroke-width="1.8" transform="translate(0.5 0.7)"/>
+      <path d="M33.5 47.2c5.2 0.6 9.6-1.4 11.4-5.4 1.2-2.7-0.9-5.3-3.4-4.2-1.7 0.8-1.6 3 0.1 3.4" stroke="url(#carve)" stroke-width="0.95"/>
+      <path d="M20.8 46c-2.2-0.9-3.6-2.6-3.4-4.5 0.2-1.6 2.1-2.2 3-0.9" stroke="#000" stroke-opacity="0.45" stroke-width="1.7" transform="translate(0.5 0.7)"/>
+      <path d="M20.8 46c-2.2-0.9-3.6-2.6-3.4-4.5 0.2-1.6 2.1-2.2 3-0.9" stroke="url(#carve)" stroke-width="0.9"/>
+      <path d="M41 15.5c3.3 1.2 5.6 3.8 6 6.8 0.2 1.7-1.6 2.5-2.6 1.3" stroke="#000" stroke-opacity="0.45" stroke-width="1.7" transform="translate(0.5 0.7)"/>
+      <path d="M41 15.5c3.3 1.2 5.6 3.8 6 6.8 0.2 1.7-1.6 2.5-2.6 1.3" stroke="url(#carve)" stroke-width="0.9"/>
+    </g>
+    <!-- translucency: light pooling at the bottom edge -->
+    <ellipse cx="33" cy="54" rx="20" ry="9" fill="url(#pool)"/>
+    <!-- specular highlight -->
+    <ellipse cx="23" cy="17.5" rx="10" ry="5.4" fill="url(#shine)" transform="rotate(-28 23 17.5)" opacity="0.6"/>
+    <circle cx="19.4" cy="16.2" r="1.2" fill="#fff" opacity="0.7"/>
+  </g>
+  <!-- inner rim line -->
+  <circle cx="32" cy="32" r="27.6" fill="none" stroke="#9fe0c2" stroke-opacity="0.18" stroke-width="0.8"/>
+  <!-- gold rim highlight -->
+  <path d="M4.55 22A29.2 29.2 0 0 1 22 4.55" fill="none" stroke="#fff6d6" stroke-opacity="0.75" stroke-width="0.8" stroke-linecap="round"/>
+</svg>
