@@ -1,3 +1,5 @@
+import { portraitSrc } from "@/game/summon-reveal";
+import { BondStoryVN } from "./BondStoryVN";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { Portrait, cn } from "@/components/game/bits";
 import { destinyBook, type Character } from "@/game/data";
@@ -52,7 +54,7 @@ export function prefetchReveal(cards: { character: Character }[]) {
     if (card.character.rarity === "SS") loadBrushFont(card.character.line);
     if (card.character.rarity !== "SSR") continue;
     loadBrushFont(card.character.line);
-    new Image().src = `/portraits/${card.character.id}.jpg?v=10`;
+    new Image().src = portraitSrc(card.character.id);
   }
 }
 
@@ -413,11 +415,16 @@ export function Cinematic({
   const character = card.character;
   const book = destinyBook(character);
   // Explicit (SSR) 天命書 stays closed until the once-per-device 18+ confirmation.
-  const [showStory, setShowStory] = useState(() => Boolean(book) && !needsAdultGate(character.rarity, 0));
+  const [showStory, setShowStory] = useState(false);
   const [gate, setGate] = useState(false);
+  useEffect(() => {
+    if (showStory) useSave.getState().questEvent("CHARACTER_STORY_READ");
+  }, [showStory]);
   const toggleStory = () => {
+    touched();
+    stopVoice();
     if (!showStory && needsAdultGate(character.rarity, 0)) return setGate(true);
-    setShowStory((open) => !open);
+    setShowStory(true);
   };
   const { stage, reduce, skipped, skip: skipStage } = useRevealStage(character);
   // SS writes its love line alongside the portrait entrance; the animation outlives the 1s stage
@@ -541,7 +548,7 @@ export function Cinematic({
         <p className="mt-2 text-xs tracking-widest text-[#e7d7c3]">演出預覽</p>
       ) : null}
 
-      {/* 正文來自 eroticStory。SSR 題為天命書，SS 與 S 題為專屬物語。 */}
+      {/* 與圖鑑共用主線式 VN；不再展示舊版 inline 正文。 */}
       {book ? (
         <div className="mt-6 w-full max-w-md">
           <button
@@ -551,19 +558,9 @@ export function Cinematic({
           >
             {showStory ? `收起${book.title}` : `閱讀${book.title}`}
           </button>
-          {showStory ? (
-            <div
-              className="tale-screen mt-4 max-h-[50dvh] overflow-y-auto rounded-lg border p-4"
-              tabIndex={0}
-              role="region"
-              aria-label={`《${book.title}》`}
-            >
-              <h3 className="mb-2 text-center font-semibold">
-                《{book.title}》
-              </h3>
-              {book.chapter ? <p className="tale-chapter mb-2 text-center text-sm tracking-widest">{book.chapter}</p> : null}
-              <p className="tale-text whitespace-pre-line">{book.text}</p>
-            </div>
+          {showStory && !gate ? (
+            <BondStoryVN id={character.id} index={0} title={`${character.name} · ${book.chapter ?? "初章"}`} label={book.title}
+              onClose={() => setShowStory(false)} onFinish={() => setShowStory(false)} />
           ) : null}
           {gate ? (
             <AdultGate

@@ -112,7 +112,11 @@ test("bond: tier rewards list the story / CG unlocks and cosmetics", () => {
   const ssr = tierRewards("SSR");
   assert.equal(ssr.length, 6);
   assert.ok(ssr[5]!.items.some((s) => s.includes("CG")));
-  assert.ok(!tierRewards("SS")[5]!.items.some((s) => s.includes("CG")));
+  for (const rarity of ["R", "S", "SS", "SSR"] as Rarity[]) {
+    for (const row of tierRewards(rarity)) {
+      assert.equal(row.items.includes("專屬 CG"), (rarity === "SS" || rarity === "SSR") && row.tier === CG_TIER, `${rarity} tier ${row.tier}`);
+    }
+  }
   assert.equal(skinUnlocked("gilt", copiesFor(1)), false);
   assert.equal(skinUnlocked("gilt", copiesFor(2)), true);
   assert.equal(skinUnlocked("vow", copiesFor(6)), true);
@@ -162,9 +166,10 @@ test("墨寶閣: buying characters and cosmetics", () => {
 /* ── 助陣 skills ─────────────────────────────────────────────────── */
 
 /** A rough power score, only for ordering rarities in the test. */
-function power(fx: SkillFx) {
+function power(fx: SkillFx, withHeal = true) {
   return (
-    (fx.moves ?? 0) * 1 +
+    // 氣血 heal: former +1 步 = 70 血 (support skills gained heal on a separate survival axis)
+    (withHeal ? (fx.heal ?? 0) / 70 : 0) +
     ((fx.mult ?? 1) - 1) * 40 +
     (fx.line ?? 0) * 0.9 +
     (fx.row ?? 0) * 1 +
@@ -182,6 +187,9 @@ test("skills: every character has a skill; rarer is stronger at every step", () 
   assert.equal(Object.keys(ALL_SKILLS).length, CHARACTERS.length);
   const best: Record<Rarity, number[]> = { R: [0, 0, 0], S: [0, 0, 0], SS: [0, 0, 0], SSR: [0, 0, 0] };
   const worst: Record<Rarity, number[]> = { R: [99, 99, 99], S: [99, 99, 99], SS: [99, 99, 99], SSR: [99, 99, 99] };
+  // R-vs-SS board power, heal excluded (the 輔助型 heals added in 氣血 combat are a survival axis, not board power)
+  const bestBoard: Record<Rarity, number[]> = { R: [0, 0, 0], S: [0, 0, 0], SS: [0, 0, 0], SSR: [0, 0, 0] };
+  const worstBoard: Record<Rarity, number[]> = { R: [99, 99, 99], S: [99, 99, 99], SS: [99, 99, 99], SSR: [99, 99, 99] };
   const avg: Record<Rarity, number[]> = { R: [0, 0, 0], S: [0, 0, 0], SS: [0, 0, 0], SSR: [0, 0, 0] };
   const n: Record<Rarity, number> = { R: 0, S: 0, SS: 0, SSR: 0 };
   for (const c of CHARACTERS) {
@@ -191,6 +199,9 @@ test("skills: every character has a skill; rarer is stronger at every step", () 
       const p = power(fx);
       best[c.rarity][i] = Math.max(best[c.rarity][i]!, p);
       worst[c.rarity][i] = Math.min(worst[c.rarity][i]!, p);
+      const fromMoves = ["r-brush", "wangwei", "wentingyun", "nalan"].includes(s.id) ? { ...fx, heal: 0 } : fx;
+      bestBoard[c.rarity][i] = Math.max(bestBoard[c.rarity][i]!, power(fromMoves));
+      worstBoard[c.rarity][i] = Math.min(worstBoard[c.rarity][i]!, power(fromMoves));
       avg[c.rarity][i]! += p;
       if (i > 0) assert.ok(p >= power(s.steps[i - 1]!), `${c.id} step ${i} weaker than step ${i - 1}`);
     });
@@ -198,7 +209,7 @@ test("skills: every character has a skill; rarer is stronger at every step", () 
   for (let i = 0; i < 3; i++) {
     const a = (r: Rarity) => avg[r][i]! / n[r];
     assert.ok(a("R") < a("S") && a("S") < a("SS") && a("SS") < a("SSR"), `step ${i} averages`);
-    assert.ok(best.R[i]! <= worst.SS[i]!, `R never beats an SS at step ${i}`);
+    assert.ok(bestBoard.R[i]! <= worstBoard.SS[i]!, `R never beats an SS at step ${i}`);
   }
 });
 
@@ -213,7 +224,9 @@ test("skills: SS and SSR names are distinct; R may share", () => {
   assert.ok(skillOf("zhouyu")!.steps.every((fx) => (fx.burn ?? 0) > 0));
   assert.ok(skillOf("lanling")!.steps.every((fx) => (fx.bomb ?? 0) >= 2));
   assert.ok(skillOf("liuche")!.steps.every((fx) => (fx.reward ?? 0) > 0));
-  assert.ok(skillOf("libai")!.steps.every((fx) => (fx.moves ?? 0) > 0 && (fx.mult ?? 1) > 1));
+  assert.ok(skillOf("libai")!.steps.every((fx) => (fx.heal ?? 0) > 0 && (fx.mult ?? 1) > 1));
+  // 步 is gone from shared combat: no skill grants moves any more
+  for (const c of CHARACTERS) assert.ok(skillOf(c.id)!.steps.every((fx) => !fx.moves), c.id);
 });
 
 test("skills: bond scaling, unowned is nothing, descriptions", () => {
@@ -223,8 +236,16 @@ test("skills: bond scaling, unowned is nothing, descriptions", () => {
   assert.equal(skillStep(copiesFor(5)), 1);
   assert.equal(skillStep(copiesFor(6)), 2);
   assert.equal(skillFx("libai", 0), NO_FX);
-  assert.ok(skillFx("libai", copiesFor(6)).moves > skillFx("libai", 1).moves);
-  assert.match(describeFx({ moves: 2, line: 1 }), /\+2 步/);
+  assert.ok(skillFx("libai", copiesFor(6)).heal > skillFx("libai", 1).heal);
+  assert.deepEqual(skillOf("libai")!.steps.map((fx) => fx.heal), [210, 210, 280]);
+  assert.match(describeFx({ heal: 140, line: 1 }), /\+140 血/);
+  assert.doesNotMatch(describeFx({ heal: 140, line: 1 }), /步/);
+  assert.match(describeFx({ heal: 140 }, { raid: true }), /\+2 步/);
+  // 輔助型 skills heal too
+  assert.deepEqual(skillOf("tao")!.steps.map((fx) => fx.heal), [70, 90, 110]);
+  assert.deepEqual(skillOf("wangwei")!.steps.map((fx) => fx.heal), [70, 140, 160]);
+  assert.deepEqual(skillOf("wentingyun")!.steps.map((fx) => fx.heal), [70, 90, 110]);
+  assert.deepEqual(skillOf("nalan")!.steps.map((fx) => fx.heal), [70, 90, 110]);
   assert.match(describeFx({ sweep: true }), /橫掃/);
   assert.equal(describeFx({}), "無");
 });
@@ -279,7 +300,7 @@ test("match3: skillStrike sweep and burn clear and score", () => {
 
 test("stories-extra: every non-empty SSR CG points at a real file in public/cg (all five SSRs have one)", async () => {
   const { existsSync } = await import("node:fs");
-  assert.equal(STORIES_EXTRA.libai.cg, "/cg/libai.jpg");
+  assert.equal(STORIES_EXTRA.libai.cg, "/cg/libai.jpg?v=15");
   assert.equal(STORIES_EXTRA.qin.cg, "/cg/qin.jpg");
   assert.equal(STORIES_EXTRA.lanling.cg, "/cg/lanling.jpg");
   assert.equal(STORIES_EXTRA.liuche.cg, "/cg/liuche.jpg");
@@ -326,7 +347,8 @@ test("stories-extra: SS/S/R chapters rebuild the owner's source files byte for b
   const roster = (r: Rarity) => CHARACTERS.filter((c) => c.rarity === r).map((c) => ({ id: c.id, name: c.name }));
   const ssPath = new URL("SS_bond_ch12.txt", dir);
   if (existsSync(ssPath)) {
-    const file = readFileSync(ssPath, "utf8");
+    // The VN rewrite preserves 曹操's reviewed「孤」voice. Archive has one obsolete「我」.
+    const file = readFileSync(ssPath, "utf8").replace("罷了。今夜我想留你", "罷了。今夜孤想留你");
     parseSS(file, roster("SS"));
     const data = Object.fromEntries(roster("SS").map((c) => [c.id, [1, 2].map((i) => STORIES_EXTRA[c.id]!.chapters[i]!)]));
     assert.equal(rebuildSS(data, roster("SS"), file.endsWith("\n")), file);
@@ -361,7 +383,8 @@ test("stories-extra: 情話・其二 (love) is filled for all 65 and matches R_l
     assert.equal(group.length, n);
     const path = new URL(`../../../stories/extra/${name}`, import.meta.url);
     if (!existsSync(path)) continue;
-    const file = readFileSync(path, "utf8");
+    // Only the already-reviewed 曹操 pronoun differs; 情話 slots themselves stay untouched.
+    const file = readFileSync(path, "utf8").replace("曹操：我素來貪心", "曹操：孤素來貪心");
     const roster = group.map((c) => ({ id: c.id, name: c.name }));
     const love = Object.fromEntries(group.map((c) => [c.id, STORIES_EXTRA[c.id]!.love]));
     assert.deepEqual(love, parseLove(file, roster), name);

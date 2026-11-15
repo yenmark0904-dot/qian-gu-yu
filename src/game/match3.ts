@@ -1,7 +1,8 @@
 /**
  * Pure match-3 engine (no DOM). Used by the 三消 screen and the unit tests.
  *
- * Board: rows × cols of jades. kind 0–5 are the six jades; kind -1 is the
+ * Board: rows × cols of jades. kind 0–6 are the seven jades (0 = 青玉璧; 6 = 粉心玉, the pink-heart 補血石);
+ * kind -1 is the
  * 龍珠 colour jade. A jade may carry a special:
  *   - "row"  線玉 (橫): made by a horizontal straight 4, clears its whole row.
  *   - "col"  線玉 (直): made by a vertical straight 4, clears its whole column.
@@ -11,13 +12,27 @@
  * cannot be swapped and do not fall; a match on or next to them, or a special's
  * blast, breaks one layer.
  */
-export const KINDS = 6;
+export const KINDS = 7;
 export const COLOR = -1;
+/** Pink-heart 補血石 (粉心玉). Matching it restores HP (see combat.ts). Green 青玉璧 no longer heals. */
+export const HEAL_KIND = 6;
+export const HEART_HEAL_KIND = 6;
+/** Per-kind tallies follow the current jade set (seven kinds). */
+export const JADE_KINDS = KINDS;
+/** Compatibility constant: no extra biased heal-jade spawn; kind 6 appears like the other colours. */
+export const HEAL_CHANCE = 0;
 
 export type Special = "row" | "col" | "bomb" | "color";
 export type Piece = { id: number; kind: number; special?: Special };
 export type Pos = { r: number; c: number };
-export type Board = { rows: number; cols: number; cells: Piece[][]; seal: number[][] };
+export type Board = {
+  rows: number;
+  cols: number;
+  cells: Piece[][];
+  seal: number[][];
+  /** Legacy spawn metadata; ignored. All modes use the seven jades (including the pink-heart 補血石). */
+  heal?: number;
+};
 export type Rng = () => number;
 
 export type Effect =
@@ -89,9 +104,12 @@ export function makeRng(seed: number): Rng {
 const key = (p: Pos) => `${p.r},${p.c}`;
 const inside = (b: Board, p: Pos) => p.r >= 0 && p.c >= 0 && p.r < b.rows && p.c < b.cols;
 const randKind = (rng: Rng) => Math.floor(rng() * KINDS);
+/** New falling jades pick uniformly among the current KINDS (including the pink-heart 補血石). */
+const dropKind = (rng: Rng) => randKind(rng);
+const withHeal = (b: Board, heal: number | undefined): Board => (heal ? { ...b, heal } : b);
 
 export function cloneBoard(b: Board): Board {
-  return { rows: b.rows, cols: b.cols, cells: b.cells.map((row) => row.slice()), seal: b.seal.map((row) => row.slice()) };
+  return withHeal({ rows: b.rows, cols: b.cols, cells: b.cells.map((row) => row.slice()), seal: b.seal.map((row) => row.slice()) }, b.heal);
 }
 
 export function near(a: Pos, b: Pos) {
@@ -207,7 +225,7 @@ function commonKind(b: Board, skip: Set<string>, rng: Rng): number {
   for (let r = 0; r < b.rows; r++)
     for (let c = 0; c < b.cols; c++) {
       const k = b.cells[r]![c]!.kind;
-      if (k >= 0 && !skip.has(`${r},${c}`)) counts[k] += 1;
+      if (k >= 0 && k < KINDS && !skip.has(`${r},${c}`)) counts[k] += 1;
     }
   const best = Math.max(...counts);
   const ties = counts.map((n, k) => (n === best ? k : -1)).filter((k) => k >= 0);
@@ -290,7 +308,7 @@ export function resolveWave(
     b.seal[r]![c] = Math.max(0, b.seal[r]![c]! - 1);
     if (b.seal[r]![c] === 0) sealsBroken += 1;
   }
-  const collected = new Array<number>(KINDS).fill(0);
+  const collected = new Array<number>(JADE_KINDS).fill(0);
   const removed: Pos[] = [];
   const removedIds: number[] = [];
   const holes: (Piece | null)[][] = b.cells.map((row) => row.slice());
@@ -303,8 +321,8 @@ export function resolveWave(
     holes[r]![c] = null;
   }
   for (const { pos, piece: made } of created) holes[pos.r]![pos.c] = made;
-  const { cells, drops } = gravity(holes, b.seal, rng);
-  const after: Board = { rows: b.rows, cols: b.cols, cells, seal: b.seal };
+  const { cells, drops } = gravity(holes, b.seal, rng, b.heal);
+  const after: Board = withHeal({ rows: b.rows, cols: b.cols, cells, seal: b.seal }, b.heal);
   const mult = 1 + wave * 0.5;
   const score =
     Math.round(removed.length * SCORE_PER_JADE * mult) +
@@ -326,7 +344,7 @@ export function resolveWave(
 }
 
 /** Unsealed jades fall into the empty slots below them (sliding past sealed ones); new jades drop in from the top. */
-export function gravity(holes: (Piece | null)[][], seal: number[][], rng: Rng) {
+export function gravity(holes: (Piece | null)[][], seal: number[][], rng: Rng, _heal = 0) {
   const rows = holes.length;
   const cols = holes[0]?.length ?? 0;
   const cells: Piece[][] = Array.from({ length: rows }, () => new Array<Piece>(cols));
@@ -346,7 +364,7 @@ export function gravity(holes: (Piece | null)[][], seal: number[][], rng: Rng) {
     const missing = slots.length - kept.length;
     slots.forEach((r, i) => {
       if (i < missing) {
-        const p = piece(randKind(rng));
+        const p = piece(dropKind(rng));
         cells[r]![c] = p;
         drops.set(p.id, r - (i - missing));
       } else {
@@ -477,7 +495,7 @@ export function trySwap(board: Board, a: Pos, at: Pos, rng: Rng = Math.random): 
     current = reshuffle(current, rng);
     reshuffled = true;
   }
-  const collected = new Array<number>(KINDS).fill(0);
+  const collected = new Array<number>(JADE_KINDS).fill(0);
   for (const w of waves) w.collected.forEach((n, k) => (collected[k] += n));
   return {
     ok: true,
@@ -506,7 +524,7 @@ export function reshuffle(b: Board, rng: Rng): Board {
     free.forEach((p, i) => (next.cells[p.r]![p.c] = pieces[i]!));
     if (findMatches(next.cells).length === 0 && hasMove(next)) return next;
   }
-  return freshBoard(b.rows, b.cols, b.seal, rng);
+  return freshBoard(b.rows, b.cols, b.seal, rng, b.heal);
 }
 
 export function emptySeal(rows: number, cols: number) {
@@ -514,7 +532,7 @@ export function emptySeal(rows: number, cols: number) {
 }
 
 /** A random board with no ready-made lines and at least one valid swap. */
-export function freshBoard(rows: number, cols: number, seal: number[][] = emptySeal(rows, cols), rng: Rng = Math.random): Board {
+export function freshBoard(rows: number, cols: number, seal: number[][] = emptySeal(rows, cols), rng: Rng = Math.random, heal = 0): Board {
   for (let attempt = 0; ; attempt++) {
     const cells: Piece[][] = [];
     for (let r = 0; r < rows; r++) {
@@ -528,7 +546,7 @@ export function freshBoard(rows: number, cols: number, seal: number[][] = emptyS
       }
       cells.push(line);
     }
-    const b: Board = { rows, cols, cells, seal: seal.map((row) => row.slice()) };
+    const b: Board = withHeal({ rows, cols, cells, seal: seal.map((row) => row.slice()) }, heal);
     if (hasMove(b) || attempt > 500) return b;
   }
 }
@@ -622,7 +640,7 @@ export function skillStrike(board: Board, strike: Strike, rng: Rng = Math.random
     current = reshuffle(current, rng);
     reshuffled = true;
   }
-  const collected = new Array<number>(KINDS).fill(0);
+  const collected = new Array<number>(JADE_KINDS).fill(0);
   for (const w of waves) w.collected.forEach((n, k) => (collected[k] += n));
   return {
     ok: true,

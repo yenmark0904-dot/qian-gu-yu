@@ -41,6 +41,7 @@ import {
   starsFor,
 } from "./levels.ts";
 import { skillFx } from "./skills.ts";
+import { hpEquivMoves, playerMaxHp } from "./combat.ts";
 
 const P = (r: number, c: number): Pos => ({ r, c });
 const ok = (res: SwapResult) => {
@@ -306,7 +307,7 @@ test("餘步加分: remaining moves pay double the level-scaled rate", () => {
   assert.equal(bonusTally(1777, 9, 17).at(-1), finalScore(1777, 9, 17));
 });
 
-test("餘步加分 counts toward stars and best score; assist +步 count as moves", () => {
+test("餘血加分 counts toward stars and best score; remaining 氣血 maps to ≤ def.moves equivalent moves", () => {
   for (const def of LEVELS) {
     const [two, three] = def.stars;
     assert.ok(two < three, `L${def.id} stars ascend`);
@@ -318,10 +319,18 @@ test("餘步加分 counts toward stars and best score; assist +步 count as move
     const toThree = Math.ceil((three - (two - 1)) / moveBonusPer(def.id));
     assert.equal(starsFor(def, finalScore(two - 1, toThree, def.id)), 3);
   }
-  // 諸葛亮 草船借箭 grants +3 步: a clear with 2 natural moves left banks 5 moves of bonus
+  // 諸葛亮 草船借箭 no longer grants +步: it heals 210 血 (3 former steps × 70)
   const fx = skillFx("zhuge", 1);
-  assert.equal(fx.moves, 3);
-  assert.equal(finalScore(1200, 2 + fx.moves, 8), 1200 + 5 * moveBonusPer(8));
+  assert.equal(fx.moves, 0);
+  assert.equal(fx.heal, 210);
+  // full 氣血 never banks more than the old all-moves-unused bonus
+  for (const def of LEVELS) {
+    const max = playerMaxHp(def.moves);
+    assert.equal(hpEquivMoves(max, max, def.moves), def.moves);
+    assert.equal(hpEquivMoves(max * 5, max, def.moves), def.moves, "overheal never counts");
+    assert.ok(moveBonus(def.id, hpEquivMoves(max, max, def.moves)) <= def.moves * moveBonusPer(def.id));
+    assert.equal(hpEquivMoves(0, max, def.moves), 0);
+  }
 });
 
 test("第 31–50 關: an old 30-level save keeps its progress and unlocks 31 in order", () => {

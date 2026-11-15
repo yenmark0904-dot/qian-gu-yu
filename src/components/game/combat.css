@@ -1,0 +1,245 @@
+/* 共用戰鬥 UI — dark ink palette to match 三消 */
+.cb-enemy { display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0.6rem; border-radius: 1rem;
+  background: linear-gradient(90deg, rgb(28 12 16 / 0.82), rgb(13 11 10 / 0.7)); border: 1px solid rgb(160 60 50 / 0.35); }
+.cb-enemy.cb-boss { border-color: rgb(201 161 74 / 0.6); box-shadow: 0 0 18px rgb(150 40 30 / 0.25) inset; }
+.cb-enemy.cb-phase2 { animation: cb-pulse 1.6s ease-in-out infinite; }
+.cb-enemy-art { position: relative; flex: none; width: 56px; height: 56px; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.6)); }
+.cb-art-body { transform-origin: 50% 60%; animation: cb-breathe 3.2s ease-in-out infinite; }
+.cb-art-wing { transform-origin: 50% 50%; animation: cb-flap 0.9s ease-in-out infinite alternate; }
+.cb-art-flame { transform-origin: 50% 100%; animation: cb-flicker 0.5s ease-in-out infinite alternate; }
+.cb-art-eyes { animation: cb-blink 4.5s infinite; transform-origin: 50% 50%; }
+.cb-hit { animation: cb-shake 0.36s ease-out; }
+.cb-hit svg { filter: brightness(2.2) saturate(0.4); transition: filter 0.3s; }
+.cb-attacking svg { animation: cb-lunge 0.5s ease-out; }
+.cb-dead .cb-enemy-art { animation: cb-dissolve 0.9s ease-out forwards; }
+.cb-dmg { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); font-weight: 700; font-size: 0.9rem; color: #ffd27a;
+  text-shadow: 0 1px 0 #000, 0 0 6px rgb(255 120 60 / 0.8); pointer-events: none; animation: cb-dmg 0.8s ease-out forwards; white-space: nowrap; }
+.cb-dmg-skill { color: #fff1c4; font-size: 1.05rem; }
+.cb-dmg-duo { color: #9fe3ff; font-size: 1.15rem; }
+.cb-dmg-trio { color: #ffb0e6; font-size: 1.3rem; }
+.cb-hp { background: rgb(255 255 255 / 0.08); overflow: hidden; }
+.cb-hp-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, #7a1d1d, #d04a33 70%, #f08c5a); transition: width 0.45s cubic-bezier(.3,.7,.4,1); }
+.cb-shield-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: repeating-linear-gradient(135deg, rgb(150 200 255 / 0.65) 0 4px, rgb(90 140 220 / 0.55) 4px 8px); transition: width 0.3s; }
+.cb-hp-phase { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #c9a14a; opacity: 0.8; }
+.cb-shield-chip { color: #a9d2ff; }
+.cb-count { color: #e9b9a8; }
+.cb-count-soon { color: #ff7b5c; animation: cb-pulse 0.9s ease-in-out infinite; }
+.cb-purged { color: #f2d58f; letter-spacing: 0.3em; }
+.cb-attack-label { color: #ff9b84; animation: cb-fadein 0.3s ease-out; max-width: 60%; }
+.cb-lamp { background: rgb(255 255 255 / 0.08); overflow: hidden; }
+.cb-lamp-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, #b5651d, #ffcf7a); box-shadow: 0 0 8px rgb(255 190 90 / 0.7); transition: width 0.4s; }
+.cb-lamp-fill.low { background: linear-gradient(90deg, #6b2f12, #c8742b); animation: cb-flicker 0.4s ease-in-out infinite alternate; }
+
+.cb-team .m3-skill-btn-md { margin: 0 auto; }
+.cb-member { border-radius: 0.9rem; padding: 0.15rem 0.1rem 0.25rem; transition: background 0.3s; }
+.cb-linked { background: radial-gradient(circle at 50% 30%, rgb(140 200 255 / 0.18), transparent 70%); }
+.cb-team-slot, .cb-preview { background: rgb(255 255 255 / 0.04); border: 1px solid rgb(214 178 120 / 0.2); }
+.cb-preview.cb-boss { border-color: rgb(201 161 74 / 0.55); background: rgb(90 29 23 / 0.25); }
+.cb-edit, .cb-chip { color: #f2d58f; border: 1px solid rgb(201 161 74 / 0.5); }
+.cb-slot-empty { border: 1px dashed rgb(214 178 120 / 0.45); color: rgb(214 178 120 / 0.8); }
+.cb-scene { background: rgb(255 210 130 / 0.06); border: 1px solid rgb(255 200 120 / 0.25); }
+
+.cb-combo { position: fixed; inset: 0; z-index: 56; display: grid; place-content: center; justify-items: center; pointer-events: none; animation: cb-combo-out 1.5s ease-in forwards; }
+.cb-combo-ink { position: absolute; inset: 30% -10%; background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0) 70%); animation: cb-ink 1.5s ease-out; }
+.cb-combo-faces { position: relative; display: flex; gap: 0.4rem; }
+.cb-combo-face { width: 3.4rem; height: 3.4rem; border-radius: 9999px; object-fit: cover; object-position: top; border: 2px solid #c9a14a; animation: cb-face-in 0.45s cubic-bezier(.2,.9,.3,1.3) both; }
+.cb-combo-face:nth-child(2) { animation-delay: 0.08s; }
+.cb-combo-face:nth-child(3) { animation-delay: 0.16s; }
+.cb-combo-title { position: relative; margin-top: 0.4rem; font-size: 2.4rem; letter-spacing: 0.35em; color: #f2d58f; text-shadow: 0 0 18px rgb(255 200 100 / 0.8), 0 2px 0 #000; animation: cb-title-in 0.5s cubic-bezier(.2,.9,.3,1.3) both; }
+.cb-combo-duo .cb-combo-title { color: #bfe8ff; text-shadow: 0 0 18px rgb(120 200 255 / 0.85), 0 2px 0 #000; }
+.cb-combo-trio .cb-combo-title { font-size: 2.8rem; color: #ffd7f0; text-shadow: 0 0 22px rgb(255 120 200 / 0.9), 0 0 40px rgb(255 210 120 / 0.6), 0 2px 0 #000; }
+.cb-combo-purge .cb-combo-title { color: #fff1c4; }
+.cb-combo-sub { position: relative; margin-top: 0.2rem; font-size: 0.8rem; letter-spacing: 0.2em; color: rgb(255 255 255 / 0.8); }
+.m3-board.cb-board-hit { animation: cb-board-hit 0.45s ease-out; }
+
+@keyframes cb-breathe { 50% { transform: scale(1.04, 0.97); } }
+@keyframes cb-flap { from { transform: scaleY(1); } to { transform: scaleY(0.7); } }
+@keyframes cb-flicker { from { opacity: 1; transform: scaleY(1); } to { opacity: 0.75; transform: scaleY(0.88); } }
+@keyframes cb-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes cb-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px) rotate(-4deg); } 45% { transform: translateX(4px) rotate(3deg); } 70% { transform: translateX(-2px); } }
+@keyframes cb-lunge { 40% { transform: scale(1.25) translateY(6px); } }
+@keyframes cb-dissolve { to { opacity: 0; transform: scale(1.3) translateY(-6px); filter: blur(4px); } }
+@keyframes cb-dmg { 0% { opacity: 0; transform: translate(-50%, 6px) scale(0.7); } 20% { opacity: 1; transform: translate(-50%, -4px) scale(1.15); } 100% { opacity: 0; transform: translate(-50%, -22px) scale(1); } }
+@keyframes cb-pulse { 50% { opacity: 0.65; } }
+@keyframes cb-fadein { from { opacity: 0; transform: translateY(3px); } }
+@keyframes cb-combo-out { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes cb-ink { from { transform: scaleX(0.2); opacity: 0; } 30% { transform: scaleX(1); opacity: 1; } }
+@keyframes cb-face-in { from { opacity: 0; transform: translateY(14px) scale(0.6); } }
+@keyframes cb-title-in { from { opacity: 0; transform: scale(1.8); letter-spacing: 0.8em; } }
+@keyframes cb-board-hit { 30% { filter: brightness(0.55) sepia(0.4) hue-rotate(-20deg); transform: translateY(2px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cb-art-body, .cb-art-wing, .cb-art-flame, .cb-art-eyes, .cb-enemy.cb-phase2, .cb-count-soon, .cb-lamp-fill.low { animation: none; }
+  .cb-combo { animation-duration: 0.9s; }
+  .cb-combo-face, .cb-combo-title, .cb-combo-ink, .cb-hit, .cb-attacking svg, .m3-board.cb-board-hit { animation: none; }
+}
+
+/* 戰鬥版面 (portrait): 上方大墨厄 → 我的戰隊 → 滿寬三消 → 我的氣血條（過關＝打倒墨厄）。
+   The 墨厄 stage takes whatever height is left (min 7.5rem); the board is full width and only narrows
+   on short phones so the stage keeps its minimum (--m3-chrome = everything that is not the board). */
+.m3-screen { --m3-chrome: calc(19rem + env(safe-area-inset-bottom)); }
+.m3-screen > .cb-team, .m3-screen > .m3-hud, .m3-screen > .m3-board { flex-shrink: 0; }
+.m3-screen > .m3-hud-compact { margin-bottom: max(0.4rem, env(safe-area-inset-bottom)); }
+.cb-enemy.cb-stage { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden;
+  flex: 1 1 auto; min-height: 7.5rem; max-height: 24rem;
+  background: radial-gradient(ellipse at 50% 38%, rgb(70 26 30 / 0.55), rgb(14 11 12 / 0.92) 72%); }
+.cb-stage-art { position: relative; flex: 1 1 auto; min-height: 0; display: grid; place-items: center; overflow: hidden; }
+.cb-stage-art .cb-enemy-art { position: absolute; inset: 0; width: auto; height: auto; display: grid; place-items: center; }
+.cb-stage-art .cb-art { width: auto; height: 92%; max-width: 92%; }
+.cb-stage-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
+.cb-stage .cb-dmg { top: 22%; font-size: 1.35rem; }
+.cb-stage .cb-dmg-skill { font-size: 1.55rem; }
+.cb-stage .cb-dmg-duo { font-size: 1.7rem; }
+.cb-stage .cb-dmg-trio { font-size: 1.9rem; }
+.cb-stage-attack { position: absolute; top: 0.4rem; right: 0.6rem; font-size: 0.72rem; text-shadow: 0 1px 3px #000; }
+.cb-stage-note { position: absolute; left: 0.5rem; right: 0.5rem; bottom: 0.2rem; margin: 0; min-height: 1.25rem; pointer-events: none; }
+.cb-hp-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; line-height: 1; color: #fff3e6; text-shadow: 0 1px 2px #000, 0 0 3px #000; pointer-events: none; }
+.cb-stage-info { flex: none; padding: 0.3rem 0.6rem 0.35rem; background: linear-gradient(0deg, rgb(10 8 8 / 0.92), rgb(10 8 8 / 0.55)); border-top: 1px solid rgb(160 60 50 / 0.3); }
+.cb-team .cb-member { padding: 0.2rem 0.3rem; background: rgb(255 255 255 / 0.035); border: 1px solid rgb(214 178 120 / 0.18); }
+.cb-team .cb-member-full { border-color: rgb(242 195 91 / 0.65); background: rgb(242 195 91 / 0.08); }
+.cb-team .cb-member-empty { min-height: 3.3rem; border-style: dashed; }
+.m3-hud-compact .m3-goal { font-size: 0.72rem; padding: 0 0.45rem 0 0.15rem; gap: 0.2rem; }
+.m3-hud-compact .m3-goal img { width: 1.1rem; height: 1.1rem; }
+.m3-hud-compact .m3-goal-score, .m3-hud-compact .m3-goal-seal { width: 1.05rem; height: 1.05rem; font-size: 0.58rem; }
+.m3-hud-compact .m3-bar-star { font-size: 0.72rem; }
+
+/* 玩家氣血 (replaces the 步 circle) */
+.m3-hp { gap: 0; }
+.m3-hp-bar { position: relative; display: block; width: 2.9rem; height: 3px; border-radius: 999px; background: rgb(255 255 255 / 0.12); overflow: hidden; }
+.m3-hp-bar i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, #3f9a6a, #8fe0a8); transition: width 0.35s ease; }
+.m3-hp-low .m3-hp-bar i { background: linear-gradient(90deg, #a8352a, #ff7b5c); }
+.m3-hp-hurt { animation: m3-hp-hurt 0.45s ease-out; }
+.m3-hp-heal { animation: m3-hp-heal 0.6s ease-out; }
+@keyframes m3-hp-hurt { 25% { transform: translateX(-3px); box-shadow: 0 0 16px rgb(226 86 63 / 0.85); } 60% { transform: translateX(2px); } }
+@keyframes m3-hp-heal { 30% { box-shadow: 0 0 18px rgb(143 224 168 / 0.85); border-color: #8fe0a8; } }
+.m3-float-heal { color: #a8f0c0 !important; text-shadow: 0 1px 0 #000, 0 0 8px rgb(80 200 130 / 0.85) !important; }
+.m3-float-hurt { color: #ff9b84 !important; text-shadow: 0 1px 0 #000, 0 0 8px rgb(226 86 63 / 0.85) !important; }
+.m3-hp-hud-label { color: #f2d58f; letter-spacing: 0.15em; }
+.m3-hp-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, #8a5a1c, #c9a14a 55%, #f2d58f); transition: width 0.4s cubic-bezier(.3,.7,.4,1); }
+.m3-hp-hud-low { border-color: rgb(226 86 63 / 0.7) !important; box-shadow: 0 0 10px rgb(226 86 63 / 0.35); }
+.m3-hp-hud-low .m3-hp-hud-label { color: #ff9b84; }
+.m3-hp-hud-low .m3-hp-fill { background: linear-gradient(90deg, #7a1d1d, #d04a33 70%, #ff7b5c); animation: cb-pulse 0.9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .m3-hp-hurt, .m3-hp-heal { animation: none; } }
+
+/* 劇情三消 invite at the end of a story volume */
+.story-event-card { margin: 8px 0 4px; padding: 12px 14px; border-radius: 14px; text-align: center;
+  background: radial-gradient(ellipse at 50% 0%, rgb(255 200 110 / 0.16), rgb(12 10 8 / 0.6) 70%); border: 1px solid rgb(214 178 120 / 0.5); }
+.story-event-eyebrow { font-size: 0.72rem; letter-spacing: 0.3em; color: #f2d58f; }
+.story-event-invite { margin-top: 4px; font-family: serif; font-size: 1.02rem; color: #fff3d6; text-shadow: 0 0 10px rgb(255 190 90 / 0.5); }
+.story-event-meta { margin: 4px 0 6px; font-size: 0.7rem; color: rgb(245 238 225 / 0.6); }
+.m3-board { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.m3-board * { -webkit-user-drag: none; }
+.m3-intro-vein { color: #e9b9a8; }
+
+/* t482: compact preparation only; combat HUD and original art stay untouched. */
+.cb-picker-card {
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+.cb-confirm {
+  min-height: 44px;
+  font-weight: 600;
+}
+.cb-team-slot {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.cb-team-slot .cb-edit,
+[data-testid="cb-team-picker"] .cb-edit,
+[data-testid="cb-team-picker"] .ui-quiet {
+  min-height: 44px;
+}
+.cb-roster-hint {
+  font-size: 12px;
+  color: #b8ab8f;
+  padding: 8px 0;
+}
+.cb-enemy-interval {
+  color: #d0ba83;
+  font-size: 12px;
+  margin: 3px 0;
+}
+.cb-intel-details summary,
+.cb-stage-details summary,
+.cb-prep-details summary {
+  cursor: pointer;
+  min-height: 36px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: #c7b788;
+}
+.cb-intel-details,
+.cb-stage-details,
+.cb-prep-details {
+  text-align: left;
+  font-size: 12px;
+  color: #b9b19d;
+}
+.cb-prep-card {
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px;
+  scroll-padding-bottom: 80px;
+}
+.cb-prep-card > h2 {
+  font-size: 25px;
+}
+.cb-prep-card .cb-preview {
+  margin-top: 4px;
+  padding: 8px;
+}
+.cb-prep-card .cb-team-slot {
+  margin-top: 8px;
+}
+.cb-prep-card .cb-prep-actions {
+  position: sticky;
+  bottom: -14px;
+  z-index: 2;
+  margin: 8px -14px -14px;
+  padding: 10px 14px max(12px, env(safe-area-inset-bottom));
+  background: #141611;
+  border-top: 1px solid #a8905738;
+  box-shadow: 0 -5px 12px #11140f;
+}
+.cb-prep-actions button {
+  min-height: 48px;
+  font-size: 15px;
+}
+.cb-prep-actions [data-testid="m3-start"] {
+  font-weight: 600;
+}
+[data-testid="cb-team-picker"] .scroll-area {
+  padding-right: 0;
+}
+@media (max-width: 360px) {
+  [data-testid="cb-team-picker"] {
+    padding: 10px;
+  }
+  .cb-picker-card {
+    padding: 12px;
+  }
+  .cb-prep-card {
+    padding: 12px;
+  }
+  .cb-prep-card .cb-prep-actions {
+    bottom: -12px;
+    margin-left: -12px;
+    margin-right: -12px;
+    margin-bottom: -12px;
+    padding-inline: 12px;
+  }
+}
+
+/* t559: show raid animation colors directly. Multiply hid the dark 墨厄 into the stage. */
+.cb-stage-art .cb-raid-art { filter: none; mix-blend-mode: normal; }
+.raid-media { display: block; flex: none; overflow: hidden; border-radius: 14px;
+  mix-blend-mode: normal; pointer-events: none; line-height: 0; }
+.raid-media > video, .raid-media > img { display: block; width: 100%; height: 100%;
+  object-fit: cover; object-position: inherit; border-radius: inherit; }
+.raid-media-picker { width: 44px; height: 52px; border-radius: 9px; }
+.raid-media-detail { width: 112px; height: 148px; }
+/* t560: extend the pale video field to the full stage; keep the figure at the previous combat size. */
+.raid-media-combat { width: 100%; height: 100%; max-height: none; border-radius: 0; display: grid; place-items: center; }
+.raid-media-combat > video, .raid-media-combat > img {
+  width: min(70%, 240px); height: 96%; max-height: 320px; }

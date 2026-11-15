@@ -4,6 +4,7 @@ import { BondPips, MoHen, Portrait, RarityMark, SkinnedCard, cn } from "@/compon
 import { CHARACTERS, RARITY_META, RARITY_ORDER, type Rarity } from "@/game/data";
 import { RANK } from "@/game/logic";
 import { MARK_OVERFLOW, MARK_TRICKLE, MAX_DUPES, bondLevel } from "@/game/bond";
+import { dupeFeedback, progressCopy, tierLabel } from "@/game/bond-feedback";
 import { CHARACTER_PRICE, COSMETICS, ownsCosmetic, type Cosmetic } from "@/game/shop";
 import { useSave } from "@/game/store";
 
@@ -75,7 +76,7 @@ function People({ onNote }: { onNote: (s: string) => void }) {
           </button>
         ))}
       </div>
-      <p className="mt-2 text-xs text-muted">買下一份＝一次重逢：計入緣分，但不再化墨。緣分六階後不再出售。</p>
+      <p className="mt-2 text-xs text-muted">買下一份＝一次重逢：計入緣分，但不化墨痕、也不給墨玉。緣分六階後不再出售。</p>
       <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
         {list.map((c) => {
           const copies = owned[c.id] ?? 0;
@@ -101,7 +102,13 @@ function People({ onNote }: { onNote: (s: string) => void }) {
                 className={cn("shop-buy mt-1 flex min-h-9 w-full items-center justify-center gap-1 rounded-lg text-sm tabular-nums", maxed && "maxed")}
                 onClick={() => {
                   const r = buy(c.id);
-                  if (r.ok) onNote(copies === 0 ? `與${c.name}初遇` : `與${c.name}重逢 · 緣分 ${bondLevel(copies + 1)} 階${r.tierInk > 0 ? ` · 墨玉 +${r.tierInk}` : ""}`);
+                  if (!r.ok) return;
+                  if (copies === 0) return onNote(`與${c.name}初遇 · ${progressCopy(1)}`);
+                  const fb = dupeFeedback(c, copies + 1, bondLevel(copies + 1) > bondLevel(copies), false);
+                  const ink = r.tierInk > 0 ? ` · 墨玉 +${r.tierInk}` : "";
+                  if (fb.kind === "rankup") onNote(`${c.name} 緣分升至${tierLabel(fb.tier)}${ink}｜新解鎖：${fb.unlocks.filter((u) => u.kind !== "ink").map((u) => u.label).join("、") || "墨玉"}｜${fb.line}`);
+                  else if (fb.kind === "near") onNote(`與${c.name}重逢 · ${fb.text}（下一階：${[fb.previewSkin ? "新卡面" : null, ...fb.teaser].filter(Boolean).join("、")}）`);
+                  else if (fb.kind === "progress") onNote(`與${c.name}重逢 · ${fb.text}`);
                 }}
               >
                 {maxed ? (

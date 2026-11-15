@@ -35,3 +35,12 @@ save*.json
 *.save.json
 .DS_Store
 Thumbs.db
+.vercel
+.env*
+
+# local test results / scratch audio
+*-results.json
+ui-v11-preservation.json
+raid-balance.json
+voice-zh-generation.json
+voice-zh-preview-*.mp3

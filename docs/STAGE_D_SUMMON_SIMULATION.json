@@ -1,0 +1,88 @@
+{
+  "seed": "0x20261107",
+  "method": "Deterministic LCG, 100000 sequential pulls per scenario, checks every pity deadline; rates are simulation, not official base rates",
+  "config": {
+    "one": 150,
+    "ten": 1350,
+    "ssPity": 10,
+    "ssrPity": 60,
+    "wishSSR": 120,
+    "wishSS": 40,
+    "rates": {
+      "SSR": 0.01,
+      "SS": 0.02,
+      "S": 0.485,
+      "R": 0.485
+    },
+    "essencePerDuplicate": 1,
+    "historyLimit": 200
+  },
+  "simulations": [
+    {
+      "targetRarity": null,
+      "pulls": 100000,
+      "bins": {
+        "R": 44100,
+        "S": 44030,
+        "SS": 9658,
+        "SSR": 2212
+      },
+      "ratesIncludingGuarantees": {
+        "R": "44.1000%",
+        "S": "44.0300%",
+        "SS": "9.6580%",
+        "SSR": "2.2120%"
+      },
+      "maxGapSSR": 60,
+      "maxGapSSPlus": 10,
+      "maxGapTarget": null,
+      "freeSupplements": 0,
+      "essence": 99973,
+      "inventory": 27
+    },
+    {
+      "targetRarity": "SS",
+      "pulls": 100000,
+      "bins": {
+        "R": 43389,
+        "S": 43740,
+        "SS": 10695,
+        "SSR": 2176
+      },
+      "ratesIncludingGuarantees": {
+        "R": "43.3890%",
+        "S": "43.7400%",
+        "SS": "10.6950%",
+        "SSR": "2.1760%"
+      },
+      "maxGapSSR": 60,
+      "maxGapSSPlus": 10,
+      "maxGapTarget": 40,
+      "freeSupplements": 0,
+      "essence": 99973,
+      "inventory": 27
+    },
+    {
+      "targetRarity": "SSR",
+      "pulls": 100000,
+      "bins": {
+        "R": 44135,
+        "S": 43940,
+        "SS": 9517,
+        "SSR": 2408
+      },
+      "ratesIncludingGuarantees": {
+        "R": "44.1350%",
+        "S": "43.9400%",
+        "SS": "9.5170%",
+        "SSR": "2.4080%"
+      },
+      "maxGapSSR": 60,
+      "maxGapSSPlus": 10,
+      "maxGapTarget": 120,
+      "freeSupplements": 0,
+      "essence": 99973,
+      "inventory": 27
+    }
+  ]
+}

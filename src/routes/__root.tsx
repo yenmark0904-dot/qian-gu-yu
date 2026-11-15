@@ -3,6 +3,8 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 import { BRUSH_FONT_URL } from "@/game/brush-font";
+import { Analytics } from "@vercel/analytics/react";
+import { PresenceHeartbeat } from "@/components/presence-heartbeat";
 
 const APP_NAME = "千古遇";
 
@@ -34,6 +36,8 @@ export const Route = createRootRoute({
         <AuthProvider>
           <Outlet />
         </AuthProvider>
+        <Analytics />
+        <PresenceHeartbeat />
         <Scripts />
       </body>
     </html>

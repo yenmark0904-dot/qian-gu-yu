@@ -1,7 +1,9 @@
+import { QuickEquipSlot } from "./QuickEquip";
+import { BondStoryVN } from "./BondStoryVN";
 import { useEffect, useState } from "react";
 import { Check, Lock, Maximize2, Volume2, X } from "lucide-react";
 import { BondPips, MoHen, Portrait, RarityMark, SkinnedCard, Spoken, cn } from "@/components/game/bits";
-import { CHARACTERS, RARITY_META, RARITY_ORDER, destinyBook, type Character, type Rarity } from "@/game/data";
+import { CHARACTERS, LOVE_FUTURE_NOTE, RARITY_META, RARITY_ORDER, destinyBook, type Character, type Rarity } from "@/game/data";
 import { RANK, bondName } from "@/game/logic";
 import {
   CG_TIER,
@@ -11,12 +13,13 @@ import {
   bondLevel,
   bondProgress,
   chapterList,
+  hasExclusiveCg,
   shownSkin,
   skinUnlocked,
   tierRequirement,
-  tierRewards,
   type ChapterView,
 } from "@/game/bond";
+import { progressCopy, rewardRows } from "@/game/bond-feedback";
 import { STEP_NAMES, STEP_TIERS, describeFx, skillOf, skillStep } from "@/game/skills";
 import { STORIES_EXTRA, extraChapter } from "@/game/stories-extra";
 import { useSave } from "@/game/store";
@@ -27,10 +30,25 @@ import { adultConfirmed, confirmAdult, isExplicit, needsAdultGate, resetAdult } 
 
 const FILTERS: Array<Rarity | "ALL"> = ["ALL", ...RARITY_ORDER];
 
-export function Codex({ onReplay }: { onReplay: (character: Character) => void }) {
+export function Codex({
+  onReplay,
+  focusId,
+  onFocused,
+}: {
+  onReplay: (character: Character) => void;
+  /** Open this character's sheet right away (from the 召喚結果 rank-up entry). */
+  focusId?: string | null;
+  onFocused?: () => void;
+}) {
   const owned = useSave((s) => s.owned);
   const [filter, setFilter] = useState<Rarity | "ALL">("ALL");
-  const [open, setOpen] = useState<Character | null>(null);
+  const [open, setOpen] = useState<Character | null>(() => (focusId ? CHARACTERS.find((c) => c.id === focusId) ?? null : null));
+  useEffect(() => {
+    if (!focusId) return;
+    const c = CHARACTERS.find((x) => x.id === focusId);
+    if (c) setOpen(c);
+    onFocused?.();
+  }, [focusId, onFocused]);
   const [view, setView] = useState<"cards" | "owned">("cards");
   const met = CHARACTERS.filter((c) => (owned[c.id] ?? 0) > 0).length;
   const list = CHARACTERS.filter((c) => filter === "ALL" || c.rarity === filter).slice().sort((a, b) => {
@@ -260,6 +278,7 @@ function Detail({
     setReading(ch.index);
   };
   const [viewCg, setViewCg] = useState(false);
+  const [cgPending, setCgPending] = useState(false);
   const chosen = useSave((s) => s.skins[character.id]);
   const setSkin = useSave((s) => s.setSkin);
   const assist = useSave((s) => s.assist);
@@ -268,17 +287,28 @@ function Detail({
   const skill = skillOf(character.id);
   const step = skillStep(count);
   const open = chapters.find((c) => c.index === reading && c.state !== "locked") ?? null;
+  // 修行簿 · 情牽一念: an owned character's sheet shows their unlocked 情話; opening an unlocked
+  // 專屬物語 / 天命書 chapter counts too. Rereads count (at most once per quest per day by the tracker).
+  useEffect(() => {
+    if (owned) useSave.getState().questEvent("CHARACTER_STORY_READ");
+  }, [owned, character.id]);
+  useEffect(() => {
+    if (open?.state === "open") useSave.getState().questEvent("CHARACTER_STORY_READ");
+  }, [open?.state, open?.index]);
   const cgPath = extra?.cg?.trim() ?? "";
+  const cgUnlocked = hasExclusiveCg(character.rarity) && owned && level >= CG_TIER;
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      if (gateFor !== null) return;
+      if (gateFor !== null || open?.state === "open") return;
+      if (cgPending) { setCgPending(false); return; }
       if (viewCg) setViewCg(false);
       else onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, viewCg, gateFor]);
+  }, [onClose, viewCg, gateFor, open?.state, cgPending]);
 
   const muted = useSave((s) => s.muted);
   const voiced = hasVoice(character.rarity);
@@ -352,6 +382,7 @@ function Detail({
             {character.courtesy ? ` · 字${character.courtesy}` : ""}
           </p>
         </div>
+        <section className="mt-3" data-testid="character-equipment"><h3 className="mb-2 text-xs text-gold">命器</h3><QuickEquipSlot charId={character.id} /></section>
         {skill ? (
           <section className="bond-skill mt-3 rounded-xl p-3" data-testid="codex-skill">
             <div className="flex items-center justify-between gap-2">
@@ -364,8 +395,10 @@ function Detail({
                   type="button"
                   className={cn("bond-chip rounded-full px-3 py-1 text-xs", assist === character.id && "on")}
                   onClick={() => setAssist(assist === character.id ? null : character.id)}
+                  data-testid="codex-pin-assist"
+                  title={assist === character.id ? "再點一次取消固定，改回純自動配對" : "自動配對三人戰隊時優先帶他，直到取消"}
                 >
-                  {assist === character.id ? "助陣中" : "設為助陣"}
+                  {assist === character.id ? "📌 固定中 · 取消" : "固定助陣"}
                 </button>
               ) : null}
             </div>
@@ -396,10 +429,10 @@ function Detail({
             <p className="mt-1.5 text-xs text-muted">
               {progress.max ? (
                 <span className="inline-flex items-center gap-1">
-                  緣分已滿 · 再遇化為 <MoHen label /> {MARK_OVERFLOW[character.rarity]}
+                  緣分已圓滿 · 之後每張化為墨痕 <MoHen /> ×{MARK_OVERFLOW[character.rarity]}
                 </span>
               ) : (
-                `持有 ×${count} · 再遇 ${progress.need - progress.have} 次升至${NUM[level + 1]}階`
+                `持有 ×${count} · ${progressCopy(count)}`
               )}
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="卡面">
@@ -449,27 +482,23 @@ function Detail({
 
         <section className="mt-4" data-testid="codex-chapters">
           <h3 className="text-xs tracking-[0.3em] text-muted">《{chapters[0]?.label ?? "專屬物語"}》</h3>
+          <p className="mt-1 text-[0.7rem] tracking-[0.16em] text-muted">{LOVE_FUTURE_NOTE}</p>
           <div className="mt-2 grid gap-2">
             {chapters.map((ch) => (
               <ChapterRow key={ch.index} ch={ch} active={reading === ch.index} onOpen={() => openChapter(ch)} />
             ))}
           </div>
-          {open ? (
-            <div
-              className="tale-screen mt-3 max-h-[46dvh] overflow-y-auto rounded-xl border p-4"
-              tabIndex={0}
-              role="region"
-              aria-label={`《${open.label}》${open.title}`}
-            >
-              <h3 className="text-center text-sm tracking-widest">
-                《{open.label}》 · {open.title}
-              </h3>
-              {open.state === "open" ? (
-                <p className="tale-text mt-3 whitespace-pre-line">{open.text}</p>
-              ) : (
-                <p className="tale-text mt-6 mb-4 text-center opacity-70">待你撰寫</p>
-              )}
-            </div>
+          {open?.state === "open" && gateFor === null ? (
+            <BondStoryVN id={character.id} index={open.index} title={`${character.name} · ${open.title}`} label={open.label}
+              onClose={() => setReading(null)}
+              onFinish={() => {
+                setReading(null);
+                // CG ownership remains tier six, even for SS's final tier-four chapter.
+                if (cgUnlocked && open.index === chapters.at(-1)?.index) {
+                  if (cgPath) setViewCg(true);
+                  else setCgPending(true);
+                }
+              }} />
           ) : null}
           {isExplicit(character.rarity) && adultOk ? (
             <button
@@ -501,10 +530,10 @@ function Detail({
           ) : null}
         </section>
 
-        {character.rarity === "SSR" ? (
+        {hasExclusiveCg(character.rarity) ? (
           <section className="mt-4" data-testid="codex-cg">
             <h3 className="text-xs tracking-[0.3em] text-muted">專屬 CG</h3>
-            {owned && level >= CG_TIER ? (
+            {cgUnlocked ? (
               cgPath ? (
                 // Any aspect fits: the image keeps its own shape (portrait or 16:9) inside a dark letterbox; tap = fullscreen.
                 <button
@@ -539,16 +568,39 @@ function Detail({
           </section>
         ) : null}
 
-        <details className="bond-table mt-4 rounded-xl p-3">
+        <details className="bond-table mt-4 rounded-xl p-3" open={owned} data-testid="bond-table">
           <summary className="cursor-pointer text-xs tracking-[0.25em] text-muted">緣分階梯 · 每重逢 5 次升一階</summary>
-          <ul className="mt-2 space-y-1 text-xs">
-            {tierRewards(character.rarity).map((t) => (
-              <li key={t.tier} className={cn("flex gap-2", owned && level >= t.tier ? "text-gold" : "text-fg/70")}>
-                <span className="w-16 shrink-0">
-                  {NUM[t.tier]}階 · ×{t.tier * 5 + 1}
+          <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] text-muted">
+            <span className="inline-flex items-center gap-1">
+              <span className="bond-next bond-next-look rounded-full px-1.5">外觀／故事</span>下一次外觀／故事解鎖
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="bond-next bond-next-skill rounded-full px-1.5">技能</span>下一次技能強化
+            </span>
+          </p>
+          <ul className="mt-2 space-y-1.5 text-xs">
+            {rewardRows(character.rarity, count).map((t) => (
+              <li
+                key={t.tier}
+                className={cn("bond-row flex gap-2 rounded-lg px-1.5 py-1", t.reached ? "text-gold" : "text-fg/70", (t.nextLook || t.nextSkill) && "bond-row-next")}
+                data-testid={`bond-row-${t.tier}`}
+                data-next-look={t.nextLook || undefined}
+                data-next-skill={t.nextSkill || undefined}
+              >
+                <span className="w-[4.5rem] shrink-0 leading-snug">
+                  {NUM[t.tier]}階 · {t.name}
+                  <span className="block text-[0.65rem] text-muted">×{t.copies}</span>
                 </span>
-                <span className="flex-1">{t.items.join("、")}</span>
-                {owned && level >= t.tier ? <Check className="h-3.5 w-3.5" aria-hidden /> : null}
+                <span className="flex-1 leading-snug">
+                  {t.nextLook || t.nextSkill ? (
+                    <span className="mb-0.5 flex flex-wrap gap-1">
+                      {t.nextLook ? <span className="bond-next bond-next-look rounded-full px-1.5 text-[0.62rem]">下一次外觀／故事解鎖</span> : null}
+                      {t.nextSkill ? <span className="bond-next bond-next-skill rounded-full px-1.5 text-[0.62rem]">下一次技能強化</span> : null}
+                    </span>
+                  ) : null}
+                  {[...t.look, ...t.skill, t.ink].join("、")}
+                </span>
+                {t.reached ? <Check className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
               </li>
             ))}
           </ul>
@@ -576,7 +628,12 @@ function Detail({
           )}
         </div>
       </div>
-      {viewCg && cgPath ? (
+      {cgPending && cgUnlocked ? (
+        <div className="cg-viewer fixed inset-0 z-50 grid place-items-center p-6" role="dialog" aria-label="CG 準備中" onClick={(event) => { event.stopPropagation(); setCgPending(false); }}>
+          <div className="cloud-sheet rounded-xl p-6 text-center"><p className="font-serif tracking-widest">CG 準備中</p><button type="button" className="mt-4 min-h-11 text-gold" onClick={() => setCgPending(false)}>返回章節</button></div>
+        </div>
+      ) : null}
+      {viewCg && cgUnlocked && cgPath ? (
         <div
           className="cg-viewer fixed inset-0 z-50 grid place-items-center p-3"
           role="dialog"

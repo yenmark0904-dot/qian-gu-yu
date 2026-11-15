@@ -187,7 +187,7 @@ export const STORIES_EXTRA: Record<string, ExtraEntry> = {
     },
     love: `酒留明月，詩贈天地。這一吻，偏要向你討。`,
     voice: [``, ``],
-    cg: "/cg/libai.jpg", // portrait 1291×1920, shown whole (contain)
+    cg: "/cg/libai.jpg?v=15", // portrait 1291×1920, shown whole (contain)
   },
   liuche: {
     // 劉徹 · SSR
@@ -370,7 +370,7 @@ export const STORIES_EXTRA: Record<string, ExtraEntry> = {
 你說已經很晚，他便點頭，替你攏好披風，動作俐落得像當真毫不在意。直到你走到門邊，才發現自己的衣袖還被他握著。
 你回過頭。
 曹操看了一眼自己的手，低低笑了，終於鬆開。
-「罷了。今夜我想留你，說得再好聽，也是這個意思。」
+「罷了。今夜孤想留你，說得再好聽，也是這個意思。」
 你走回去，將兩人之間那張矮案挪開，坐到他身旁。
 「那就直說。」
 他望著你，眼底的笑慢慢靜下來。再伸手時，掌心貼住的是你的臉頰。
@@ -381,7 +381,7 @@ export const STORIES_EXTRA: Record<string, ExtraEntry> = {
 他在你耳畔叫了一遍你的名字，清楚得很。`,
       },
     },
-    love: `我素來貪心。得你一眼，便想要你一生。這回，可不打算瞞你。`,
+    love: `孤素來貪心。得你一眼，便想要你一生。這回，可不打算瞞你。`,
     voice: [``, ``],
   },
   lishimin: {

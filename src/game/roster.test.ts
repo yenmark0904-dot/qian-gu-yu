@@ -80,9 +80,9 @@ test("the fifty requested figures are in the pool once, at R or S", () => {
 test("SR is gone and S keeps SR's exact 12% weight", () => {
   assert.deepEqual(RARITY_ORDER, ["R", "S", "SS", "SSR"]);
   assert.equal(WEIGHTS.S, 1200);
-  assert.equal(WEIGHTS.R, 8100);
-  assert.equal(WEIGHTS.SS, 500);
-  assert.equal(WEIGHTS.SSR, 200);
+  assert.equal(WEIGHTS.R, 8400);
+  assert.equal(WEIGHTS.SS, 300);
+  assert.equal(WEIGHTS.SSR, 100);
   const sum = RARITY_ORDER.reduce((total, rarity) => total + WEIGHTS[rarity], 0);
   assert.equal(sum, 10000);
   for (const character of CHARACTERS) {
@@ -94,7 +94,7 @@ test("SR is gone and S keeps SR's exact 12% weight", () => {
     const rarity = rollRarity(0, () => (i + 0.5) / 10000);
     counts[rarity] += 1;
   }
-  assert.deepEqual(counts, { R: 8100, S: 1200, SS: 500, SSR: 200 });
+  assert.deepEqual(counts, { R: 8400, S: 1200, SS: 300, SSR: 100 });
 });
 
 test("every R and S figure can be drawn, including former SR ids", () => {

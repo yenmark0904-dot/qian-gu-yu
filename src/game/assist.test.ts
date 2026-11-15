@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { readFileSync } from "node:fs";
 import {
   CHARGE_BASE,
+  CHARGE_STEP,
   ENERGY,
   NO_ASSIST,
   activateSkill,
@@ -14,6 +16,7 @@ import {
   isFull,
   resolveAssist,
   spend,
+  startEnergy,
   strongestOwned,
   waveEnergy,
 } from "./assist.ts";
@@ -84,12 +87,42 @@ test("assist: charge cost by rarity and 緣分", () => {
   assert.ok(CHARGE_BASE.R < CHARGE_BASE.S && CHARGE_BASE.S < CHARGE_BASE.SS);
 });
 
-test("assist: activation applies strike, gifts, seals and moves", () => {
+test("Scheme C: rarity starts, discounted cap, spend to zero and fresh retry", () => {
+  assert.deepEqual(CHARGE_BASE, { R: 55, S: 65, SS: 75, SSR: 75 });
+  assert.deepEqual(CHARGE_STEP, [1, 0.92, 0.84]);
+  const rarities = ["R", "S", "SS", "SSR"] as const;
+  assert.deepEqual(rarities.map(startEnergy), [0, 0, 10, 20]);
+  for (const r of rarities) for (const step of [0, 1, 2] as const) {
+    const cost = chargeCost(r, copiesFor(step));
+    assert.equal(cost, Math.round(CHARGE_BASE[r] * CHARGE_STEP[step]));
+    const fresh = freshCharge(cost, r);
+    assert.deepEqual(fresh, { energy: startEnergy(r), cost, uses: 0 });
+    const spent = spend(addEnergy(fresh, 999));
+    assert.deepEqual(spent, { energy: 0, cost, uses: 1 });
+    assert.equal(addEnergy(spent, 3).energy, 3, "starting energy is not re-granted after a cast");
+    assert.deepEqual(freshCharge(cost, r), fresh, "retry grants the fresh-fight start again");
+  }
+  assert.equal(freshCharge(5, "SSR").energy, 5);
+  assert.equal(freshCharge(0, "SS").energy, 0);
+  assert.equal(freshCharge(75).energy, 0, "unspecified rarity remains backward compatible");
+});
+
+test("Match3: begin and missing-member paths share the rarity-aware fresh start; cast still resets to zero", () => {
+  const src = readFileSync(new URL("../components/game/Match3.tsx", import.meta.url), "utf8");
+  assert.match(src, /freshCharge\(costOf\(id\), BY_ID\[id\]!.rarity\)/);
+  assert.match(src, /setMembers\(Object.fromEntries\(team.map\(\(id\) => \[id, freshMember\(id\)\]\)\)\)/);
+  assert.match(src, /m\[id\] \?\? freshMember\(id\)/);
+  assert.match(src, /membersRef.current\[id\] \?\? freshMember\(id\)/);
+  assert.doesNotMatch(src, /energy: 0, uses: 0/);
+  assert.match(src, /\[id\]: \{ energy: 0, uses: mem.uses \+ 1 \}/);
+});
+
+test("assist: activation applies strike, gifts, seals and heal (no +步)", () => {
   const seal = Array.from({ length: 8 }, (_, r) => Array.from({ length: 8 }, (_, c) => (r < 2 ? 1 : 0)));
   const board = freshBoard(8, 8, seal, makeRng(7));
   const sweep = activateSkill(board, skillFx("qin", copiesFor(2)), makeRng(1));
   assert.ok(sweep.strike && sweep.strike.waves.length > 0, "qin sweeps");
-  assert.equal(sweep.moves, 1);
+  assert.equal(sweep.heal, 70, "qin 參: former +1 步 → +70 血");
   assert.ok(sweep.gifts.length >= 1);
   assert.ok(hasMove(sweep.board));
   const burn = activateSkill(board, skillFx("zhouyu", 1), makeRng(2));
@@ -101,6 +134,6 @@ test("assist: activation applies strike, gifts, seals and moves", () => {
   assert.ok(gifts.gifts.every((p) => gifts.board.cells[p.r]![p.c]!.special === "bomb"));
   const none = activateSkill(board, NO_FX, makeRng(4));
   assert.equal(none.gifts.length, 0);
-  assert.equal(none.moves, 0);
-  assert.deepEqual(activationLabels(skillFx("lanling", 1)), ["+1 步"]);
+  assert.equal(none.heal, 0);
+  assert.deepEqual(activationLabels(skillFx("lanling", 1)), ["+70 血"]);
 });

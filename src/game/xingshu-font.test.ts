@@ -23,8 +23,11 @@ test("行書 font: every love-line character (data.ts line + stories-extra love)
   assert.ok(size > 50_000 && size < 400_000, `font size ${size}`);
   const license = readFileSync(new URL("../../public/fonts/qgy-xingshu-OFL.txt", import.meta.url), "utf8");
   assert.match(license, /SIL OPEN FONT LICENSE Version 1\.1/);
-  assert.match(license, /Copyright 2021 The Yuji Project Authors/);
   assert.match(license, /QGY Xingshu/);
-  assert.doesNotMatch(license, /MasaFont|Kouzan/);
-  assert.doesNotMatch(readFileSync(new URL("../styles.css", import.meta.url), "utf8"), /MasaFont/);
+  assert.match(license, /Bakudai/);
+  assert.match(license, /no\s+glyphs were synthesized or composed/i);
+  assert.doesNotMatch(license, /MasaFont|HanWangYanKai|Yuji Boku|GNU GENERAL PUBLIC LICENSE|composed Traditional/);
+  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  assert.match(css, /Bakudai Medium/);
+  assert.doesNotMatch(css, /MasaFont|HanWangYanKai|Yuji Boku/);
 });

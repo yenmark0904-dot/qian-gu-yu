@@ -1,6 +1,6 @@
 /**
- * Japanese voices (ja-JP-KeitaNeural, pre-rendered mp3). Only SSR and SS characters have a
- * voice; S and R are silent (no mp3, no speech fallback, no play buttons).
+ * Retained Japanese 情話 text for restoration. Chinese-trial mp3s now live in public/voice/; original Japanese audio is backed up in /workspace/bak/voice-ja-mp3/.
+ * S and R are silent (no mp3, no speech fallback, no play buttons).
  *   VOICE_JA      — 情話・其一 (data.ts `line`): public/voice/<id>.mp3 (助陣 cut-in) and the
  *                   identical public/voice/<id>-line.mp3 (codex, shown once owned).
  *                   Source: /workspace/stories/voice_ja.json

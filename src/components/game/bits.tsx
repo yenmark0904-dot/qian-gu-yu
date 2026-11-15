@@ -3,6 +3,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { RARITY_META, type Character, type Rarity } from "@/game/data";
 import { MAX_BOND, bondLevel, shownSkin, type Skin } from "@/game/bond";
+import { portraitSrc } from "@/game/summon-reveal";
 import { useSave } from "@/game/store";
 
 export function cn(...inputs: ClassValue[]) {
@@ -28,7 +29,7 @@ export function Portrait({
   }
   return (
     <img
-      src={`/portraits/${id}.jpg?v=10`}
+      src={portraitSrc(id)}
       alt={name}
       draggable={false}
       className={className}

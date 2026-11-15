@@ -1,6 +1,6 @@
-import { KINDS, boardFrom, freshBoard, sealsLeft, type Board, type Rng, type Special } from "./match3.ts";
+import { JADE_KINDS, boardFrom, freshBoard, sealsLeft, type Board, type Rng, type Special } from "./match3.ts";
 
-/** 三消 · 50 關 in five 卷. Every level uses all six jades on a 7 × 8 board. */
+/** 三消 · 50 關 in five 卷. Every level uses all seven jades on a 7 × 8 board. */
 export const LEVEL_COLS = 7;
 export const LEVEL_ROWS = 8;
 
@@ -22,7 +22,9 @@ export type LevelDef = {
   tip?: string;
 };
 
-export const JADE_NAMES = ["青玉璧", "羊脂白玉", "蜜蠟黃玉", "墨玉璜", "紫羅蘭圭", "雞血紅玉印"] as const;
+export const JADE_NAMES = ["青玉璧", "羊脂白玉", "蜜蠟黃玉", "墨玉璜", "紫羅蘭圭", "雞血紅玉印", "粉心玉"] as const;
+/** The original green jade heals and still counts towards its collect goals. */
+export const HEAL_JADE_NAME = "粉心玉（粉色愛心補血石）";
 
 export const CHAPTERS = [
   { from: 1, to: 10, name: "卷一 · 青川" },
@@ -169,16 +171,20 @@ export function sealGrid(def: Pick<LevelDef, "seal">): number[][] {
   return rows.map((line) => [...line].map((ch) => (ch === "2" ? 2 : ch === "1" ? 1 : 0)));
 }
 
-export function startBoard(def: LevelDef, rng: Rng = Math.random): Board {
-  if (def.preset) return boardFrom(def.preset.rows, def.preset.specials ?? [], sealGrid(def));
-  return freshBoard(LEVEL_ROWS, LEVEL_COLS, sealGrid(def), rng);
+/** `heal` is legacy metadata; boards now use the seven jades, including the pink-heart 補血石. */
+export function startBoard(def: LevelDef, rng: Rng = Math.random, heal = 0): Board {
+  if (def.preset) {
+    const b = boardFrom(def.preset.rows, def.preset.specials ?? [], sealGrid(def));
+    return heal ? { ...b, heal } : b;
+  }
+  return freshBoard(LEVEL_ROWS, LEVEL_COLS, sealGrid(def), rng, heal);
 }
 
 export type Progress = { score: number; collected: number[]; sealsLeft: number; sealsTotal: number };
 
 export function startProgress(board: Board): Progress {
   const n = sealsLeft(board);
-  return { score: 0, collected: new Array<number>(KINDS).fill(0), sealsLeft: n, sealsTotal: n };
+  return { score: 0, collected: new Array<number>(JADE_KINDS).fill(0), sealsLeft: n, sealsTotal: n };
 }
 
 export function goalStatus(goal: Goal, p: Progress): { have: number; need: number; done: boolean } {

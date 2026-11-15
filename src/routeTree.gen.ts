@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ApiCloudRouteImport } from './routes/api/cloud'
+import { Route as ApiPresenceRouteImport } from './routes/api/presence'
+import { Route as ApiStoryVoiceRouteImport } from './routes/api/story-voice'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +26,21 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCloudRoute = ApiCloudRouteImport.update({
+  id: '/api/cloud',
+  path: '/api/cloud',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPresenceRoute = ApiPresenceRouteImport.update({
+  id: '/api/presence',
+  path: '/api/presence',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStoryVoiceRoute = ApiStoryVoiceRouteImport.update({
+  id: '/api/story-voice',
+  path: '/api/story-voice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -32,30 +50,61 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/cloud': typeof ApiCloudRoute
+  '/api/presence': typeof ApiPresenceRoute
+  '/api/story-voice': typeof ApiStoryVoiceRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/cloud': typeof ApiCloudRoute
+  '/api/presence': typeof ApiPresenceRoute
+  '/api/story-voice': typeof ApiStoryVoiceRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/cloud': typeof ApiCloudRoute
+  '/api/presence': typeof ApiPresenceRoute
+  '/api/story-voice': typeof ApiStoryVoiceRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/api/cloud'
+    | '/api/presence'
+    | '/api/story-voice'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/auth/$'
-  id: '__root__' | '/' | '/login' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/api/cloud'
+    | '/api/presence'
+    | '/api/story-voice'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/api/cloud'
+    | '/api/presence'
+    | '/api/story-voice'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ApiCloudRoute: typeof ApiCloudRoute
+  ApiPresenceRoute: typeof ApiPresenceRoute
+  ApiStoryVoiceRoute: typeof ApiStoryVoiceRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -75,6 +124,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cloud': {
+      id: '/api/cloud'
+      path: '/api/cloud'
+      fullPath: '/api/cloud'
+      preLoaderRoute: typeof ApiCloudRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/presence': {
+      id: '/api/presence'
+      path: '/api/presence'
+      fullPath: '/api/presence'
+      preLoaderRoute: typeof ApiPresenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/story-voice': {
+      id: '/api/story-voice'
+      path: '/api/story-voice'
+      fullPath: '/api/story-voice'
+      preLoaderRoute: typeof ApiStoryVoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -88,6 +158,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ApiCloudRoute: ApiCloudRoute,
+  ApiPresenceRoute: ApiPresenceRoute,
+  ApiStoryVoiceRoute: ApiStoryVoiceRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

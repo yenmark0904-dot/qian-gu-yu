@@ -3,12 +3,12 @@ export type Rarity = "R" | "S" | "SS" | "SSR";
 export const RARITY_ORDER: Rarity[] = ["R", "S", "SS", "SSR"];
 
 // S keeps the old SR weight exactly (1200 = 12%). SR had no separate pity.
-// The previous S weight (2600) moves onto R so SS and SSR stay 5% and 2%.
+// Cuts onto R: SSR 2%→1%, SS 5%→3%. Base: R 84%, S 12%, SS 3%, SSR 1%. Pity 50 unchanged.
 export const WEIGHTS: Record<Rarity, number> = {
-  R: 8100,
+  R: 8400,
   S: 1200,
-  SS: 500,
-  SSR: 200,
+  SS: 300,
+  SSR: 100,
 };
 
 export const RARITY_META: Record<Rarity, { label: string; epithet: string }> = {
@@ -49,7 +49,7 @@ export const CHARACTERS: Character[] = [
     rarity: "SSR",
     verse: "六王畢，四海一",
     verseFrom: "阿房宮賦",
-    line: "天下皆在我掌中，唯獨你......讓朕想留在你身邊",
+    line: "天下皆在朕掌中，唯獨你......讓朕想留在你身邊",
     eroticTitle: "第一章・初遇（表面的帝王）",
     eroticStory: `深夜阿房宮，巨燭燃至一半。嬴政扣住你的手腕，把你整個人按在案几與他的身體之間。黑金深衣領口已鬆，他引導你的掌心貼上他發燙的胸膛，隔著衣料都能感覺到心跳急促。
 他低頭，唇貼著你的頸側緩慢吮吻，牙齒輕咬，留下濕熱的痕跡。手指從你的手腕一路往上，探進你的衣襟，掌心覆上你的胸口，緩慢揉捏，直到你呼吸變亂。他卻始終沒有完全解開衣物，只是用身體把你壓得更緊，讓你清楚感覺到他下腹已經硬熱的形狀抵著你。
@@ -135,7 +135,7 @@ export const CHARACTERS: Character[] = [
     rarity: "SS",
     verse: "鳳兮鳳兮歸故鄉，遨遊四海求其凰",
     verseFrom: "鳳求凰",
-    line: "鳳兮鳳兮歸故鄉，遨遊四海求其凰。我求了很久。原來凰是你。",
+    line: "鳳兮歸故鄉，遨遊四海求其凰。我求了很久。原來凰是你。",
     eroticStory: `夜色把琴案照得很靜。他的指尖按在未彈完的弦上，目光卻先落在你身上。「鳳兮鳳兮，我求了很久。」話聲又低又慢，像怕把這一晚驚散。袖口輕輕覆上你的手背，溫熱停在腕間，並不急著再近。「四海都寫盡了。今夜我不寫賦，只想聽你應我一聲。」燭火一跳，他把你的名字含進笑裡，眼底卻認真得不肯放人。「你若願意留下，這一曲，就只為你收尾。」`,
   },
   {
@@ -171,8 +171,8 @@ export const CHARACTERS: Character[] = [
     rarity: "SS",
     verse: "對酒當歌，人生幾何",
     verseFrom: "短歌行",
-    line: "天下可以慢一點。這一杯，我想與你對飲。",
-    eroticStory: `酒盞在他指間轉了半圈，天下的話他都說倦了，卻把最滿的一杯推到你面前。「人生幾何。這一杯，我想與你對飲，不談霸業。」燭影裡他的笑仍舊鋒利，眼神卻停得很久，像在確認你沒有怕他。他傾身，酒氣淡淡，聲音壓低：「旁人看我奪，我今夜只想被你留一下。」杯沿輕輕碰你的杯，叮的一聲，他竟先笑出了聲。「慢一點也好。你在，江山可以等。」`,
+    line: "天下可以慢一點。這一杯，孤想與你對飲。",
+    eroticStory: `酒盞在他指間轉了半圈，天下的話他都說倦了，卻把最滿的一杯推到你面前。「人生幾何。這一杯，孤想與你對飲，不談霸業。」燭影裡他的笑仍舊鋒利，眼神卻停得很久，像在確認你沒有怕他。他傾身，酒氣淡淡，聲音壓低：「旁人看孤奪，孤今夜只想被你留一下。」杯沿輕輕碰你的杯，叮的一聲，他竟先笑出了聲。「慢一點也好。你在，江山可以等。」`,
   },
   {
     id: "lishimin",
@@ -214,7 +214,7 @@ export const CHARACTERS: Character[] = [
     id: "songyu",
     name: "宋玉",
     courtesy: "",
-    epithet: "情聖辭賦",
+    epithet: "情聖詞賦",
     era: "戰國",
     rarity: "SS",
     verse: "嫣然一笑，惑陽城，迷下蔡",
@@ -823,6 +823,9 @@ export const SPOTLIGHT = CHARACTERS.filter((c) => c.rarity === "SSR");
 export const BY_ID = Object.fromEntries(CHARACTERS.map((c) => [c.id, c]));
 
 export type DestinyBook = { title: string; text: string; chapter?: string };
+
+/** Card romance is an if-future with that character, not the main-story ending. */
+export const LOVE_FUTURE_NOTE = "與該角色發展為戀人的可能未來";
 
 /** Stories live on `eroticStory`. SSR is 《天命書》; SS and S are 《專屬物語》. */
 export function destinyBook(character: Character): DestinyBook | null {

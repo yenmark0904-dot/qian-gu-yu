@@ -37,7 +37,7 @@ test("brush line: phrase splitting and line layout keep the text byte for byte",
     assert.ok(phrases.every((p) => p.length > 0));
     for (const m of METRICS) assert.equal(layoutBrushLines(t, m).join(""), t);
   }
-  assert.deepEqual(brushPhrases("「天下皆在我掌中，唯獨你......讓朕想留在你身邊」"), ["「天下皆在我掌中，", "唯獨你......", "讓朕想留在你身邊」"]);
+  assert.deepEqual(brushPhrases("「天下皆在朕掌中，唯獨你......讓朕想留在你身邊」"), ["「天下皆在朕掌中，", "唯獨你......", "讓朕想留在你身邊」"]);
 });
 
 test("brush line: no punctuation-led lines, no split ……, no one- or two-character lines, all lines fit", () => {

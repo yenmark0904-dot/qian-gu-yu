@@ -1,16 +1,21 @@
-QGY Xingshu (public/fonts/qgy-xingshu.woff2) is a modified, renamed web subset of "Yuji Boku" (佑字朴),
-from the Yuji project by Kinuta Font Factory: https://github.com/Kinutafontfactory/Yuji
-(distributed by Google Fonts: https://github.com/google/fonts/tree/main/ofl/yujiboku).
-Yuji Boku declares no Reserved Font Name; this modified version is nevertheless renamed "QGY Xingshu".
+QGY Xingshu (public/fonts/qgy-xingshu.woff2) is a modified, renamed web subset of
+"Bakudai" / 「莫大毛筆字體」 Medium (version 1.48), by Chun yu Yao (max32002),
+derived from 衡山毛筆フォント by calligrapher 青柳衡山 (Aoyagi Kouzan):
+https://github.com/max32002/bakudaifont
 
-Modifications (2026, for 千古遇): subset to the characters of the game's love lines; vertical metrics set to
-ascent 880 / descent -120; and 20 Traditional Chinese glyphs that Yuji Boku lacks were composed from
-Yuji Boku's own component outlines (scaled, merged, then stroke-weight calibrated and optically
-centred against native Yuji Boku glyphs):
-丟 你 凳 吧 哪 嗎 夠 惦 懂 挪 擋 朵 槳 盼 絕 腳 說 踩 躲 鄉.
+Bakudai declares Reserved Font Name "Bakudai"; this Modified Version is renamed
+"QGY Xingshu" and does not use any Reserved Font Name.
+
+Modifications (2026, for 千古遇): subset to every character used in the game's
+love lines (data.ts line + stories-extra love, including 「」 and 鬢髮); no
+glyphs were synthesized or composed. All 662 characters are native outlines from
+Bakudai Medium.
+
 The modified font remains under the SIL Open Font License 1.1, reproduced in full below.
 
-Copyright 2021 The Yuji Project Authors (https://github.com/Kinutafontfactory/Yuji)
+Copyright (c) 2020, Chun yu Yao (<URL|email>), with Reserved Font Name Bakudai.
+Original brush outlines © 青柳衡山 (Aoyagi Kouzan) / 衡山毛筆フォント.
+Modifications © 2026 千古遇.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

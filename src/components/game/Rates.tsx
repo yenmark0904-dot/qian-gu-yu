@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CHARACTERS, RARITY_META, RARITY_ORDER, BY_ID, WEIGHTS, type Character } from "@/game/data";
+import { CHARACTERS, LOVE_FUTURE_NOTE, RARITY_META, RARITY_ORDER, BY_ID, WEIGHTS, type Character } from "@/game/data";
 import { COST_ONE, COST_TEN, DAILY_INK, PITY, START_INK, rateLabel } from "@/game/logic";
 import { useSave } from "@/game/store";
 import { MoYu, RarityMark, cn } from "@/components/game/bits";
@@ -33,12 +33,12 @@ export function Rates({ onPreview }: { onPreview: (character: Character) => void
         </ul>
         <div className="rounded-xl border border-line bg-surface p-4 text-sm text-muted">
           <p>
-            單抽 <MoYu /> {COST_ONE} 墨玉，十連 <MoYu /> {COST_TEN}。凡緣 R {rateLabel("R")}、珍品 S {rateLabel("S")}、星輝 SS {rateLabel("SS")}、天命 SSR {rateLabel("SSR")}。S 沿用過去 SR 的 {rateLabel("S")}；原先 S 的 26% 改計入 R，SS 與 SSR 不變。
+            單抽 <MoYu /> {COST_ONE} 墨玉，十連 <MoYu /> {COST_TEN}。凡緣 R {rateLabel("R")}、珍品 S {rateLabel("S")}、星輝 SS {rateLabel("SS")}、天命 SSR {rateLabel("SSR")}。S 沿用過去 SR 的 {rateLabel("S")}；SSR 由 2% 調降為 1%、SS 由 5% 調降為 3%，差額計入 R。
           </p>
           <p className="mt-2">
             S 不設獨立保底計數，過去的 SR 也沒有。十連若沒有 S 以上，仍會把其中一張提升為 S。連續 {PITY - 1} 抽未出 SSR，下一抽必為 SSR。抽中 SSR 後重新計算。
           </p>
-          <p className="mt-2">開局 <MoYu /> {START_INK} 墨玉。每日可領 {DAILY_INK}。三消闖關也能換墨（首次過關依星數給墨玉）。重複的人會化成少量墨玉。圖卡存在這台裝置上，不用登入。</p>
+          <p className="mt-2">開局 <MoYu /> {START_INK} 墨玉。每日可領 {DAILY_INK}。三消闖關也能換墨（首次過關依星數給墨玉）。重複的人會化成墨痕（不再給墨玉）。圖卡存在這台裝置上，不用登入。</p>
           <p className="mt-2">第一次召喚，必含 SS 以上。</p>
         </div>
         {RARITY_ORDER.map((rarity) => (
@@ -47,10 +47,10 @@ export function Rates({ onPreview }: { onPreview: (character: Character) => void
               {RARITY_META[rarity].label} {RARITY_META[rarity].epithet}
             </h3>
             {rarity === "SSR" ? (
-              <p className="mt-1 text-xs text-muted">這一級的人各自帶著《天命書》。抽到或點「看演出」，書就會打開。</p>
+              <p className="mt-1 text-xs text-muted">這一級的人各自帶著《天命書》。抽到或點「看演出」，書就會打開。那是{LOVE_FUTURE_NOTE}，不是主線的正式結局。</p>
             ) : null}
             {rarity === "SS" || rarity === "S" ? (
-              <p className="mt-1 text-xs text-muted">這一級的人各自帶著《專屬物語》。抽到或點「看演出」，物語就會打開。</p>
+              <p className="mt-1 text-xs text-muted">這一級的人各自帶著《專屬物語》。抽到或點「看演出」，物語就會打開。那是{LOVE_FUTURE_NOTE}，不是主線的正式結局。</p>
             ) : null}
             <ul className="mt-2 flex flex-col">
               {CHARACTERS.filter((c) => c.rarity === rarity).map((character) => (

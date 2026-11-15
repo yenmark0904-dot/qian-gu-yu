@@ -56,8 +56,12 @@ export const CHAPTER_TIERS: Record<Rarity, number[]> = {
 /** 情話 · 其二 (`love` in stories-extra.ts): R open it one tier earlier, at 二階. */
 export const LOVE_TIER: Record<Rarity, number> = { R: 2, S: 3, SS: 3, SSR: 3 };
 
-/** SSR also unlock an exclusive CG at this tier. */
+/** SS and SSR unlock an exclusive CG at full bond. */
 export const CG_TIER = 6;
+
+export function hasExclusiveCg(rarity: Rarity): boolean {
+  return rarity === "SS" || rarity === "SSR";
+}
 
 export function storyLabel(rarity: Rarity): string {
   return rarity === "SSR" ? "天命書" : "專屬物語";
@@ -152,7 +156,7 @@ export function tierRewards(rarity: Rarity): TierReward[] {
     if (tier === 6) items.push("定情卡面");
     const ci = CHAPTER_TIERS[rarity].indexOf(tier);
     if (ci >= 0) items.push(`《${label}》${rarity === "R" ? CHAPTER_NUMERALS[0] : CHAPTER_NUMERALS[ci + 1]}`);
-    if (rarity === "SSR" && tier === CG_TIER) items.push("專屬 CG");
+    if (hasExclusiveCg(rarity) && tier === CG_TIER) items.push("專屬 CG");
     out.push({ tier, items });
   }
   return out;

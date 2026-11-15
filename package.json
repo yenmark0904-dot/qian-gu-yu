@@ -7,7 +7,7 @@
     "nf3": "0.3.17"
   },
   "scripts": {
-"dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
+    "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
     "build": "npx vite build && npm run db:migrate",
     "db:migrate": "node scripts/migrate.mjs",
     "build:dev": "node scripts/with-app-env.mjs vite build --mode development",
@@ -16,9 +16,15 @@
     "preview:stop": "node scripts/preview.mjs stop",
     "typecheck": "tsc --noEmit",
     "check:auth": "node scripts/check-auth-invariant.mjs",
-    "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/app-data/readiness-schedule.test.ts src/lib/auth/gate-identity.test.ts src/lib/auth/sign-in-gate.test.ts src/lib/preview-path-prefix.test.ts src/game/destiny-book.test.ts src/game/roster.test.ts src/game/match3.test.ts src/game/bond.test.ts src/game/daily.test.ts src/game/volume-award.test.ts",
+    "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/app-data/readiness-schedule.test.ts src/lib/auth/gate-identity.test.ts src/lib/auth/sign-in-gate.test.ts src/lib/preview-path-prefix.test.ts src/game/stories-vn.test.ts src/game/destiny-book.test.ts src/game/roster.test.ts src/game/match3.test.ts src/game/bond.test.ts src/game/daily.test.ts src/game/volume-award.test.ts src/game/feedback.test.ts src/game/shengong.test.ts src/game/presence.test.ts src/game/cloud.test.ts src/game/dupe-marks.test.ts src/game/avatar.test.ts src/game/main-story.test.ts src/game/prologue-vn.test.ts src/game/story-voice.test.ts src/game/story-voice-cast.test.ts src/game/wu-vn.test.ts src/game/qi-vn.test.ts src/game/tang-vn.test.ts src/game/bond-feedback.test.ts src/game/assist-pin.test.ts src/game/letters.test.ts src/game/rankup-lines.test.ts src/game/companion.test.ts src/game/raid.test.ts src/game/summon-reveal.test.ts src/game/artifacts.test.ts src/game/artifact-summon.test.ts src/game/summon-ink.test.ts src/game/combat.test.ts src/game/team.test.ts src/game/hp.test.ts src/game/vein.test.ts src/game/quests.test.ts src/game/refine-raid.test.ts src/game/t507.test.ts src/game/trio-passives.test.ts",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:raid": "node --experimental-strip-types --test src/game/raid.test.ts src/game/assist.test.ts src/game/match3.test.ts && node scripts/raid-save-test.mjs",
+    "test:raid:ui": "node --experimental-strip-types scripts/raid-ui-test.mjs",
+    "test:combat": "node --experimental-strip-types --test src/game/combat.test.ts && node --experimental-strip-types scripts/combat-balance.mjs",
+    "test:artifacts": "node --experimental-strip-types --test src/game/artifacts.test.ts && node scripts/artifact-save-test.mjs",
+    "test:artifact-summon": "node --experimental-strip-types --test src/game/artifact-summon.test.ts src/game/summon-ink.test.ts && node scripts/artifact-summon-save-test.mjs && node scripts/artifact-summon-render-test.mjs",
+    "test:artifact-summon:simulate": "node --experimental-strip-types scripts/artifact-summon-simulate.mts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
@@ -50,6 +56,7 @@
     "@tanstack/react-start": "^1.168.60",
     "@tanstack/react-table": "^8.21.0",
     "@tanstack/router-plugin": "^1.168.0",
+    "@vercel/analytics": "^2.0.1",
     "@vitejs/plugin-react": "^5.2.0",
     "better-auth": "~1.6.30",
     "class-variance-authority": "^0.7.1",

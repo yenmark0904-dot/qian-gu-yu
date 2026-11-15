@@ -13,11 +13,12 @@ export const COST_TEN = 1440;
 export const START_INK = 8000;
 export const DAILY_INK = 800;
 
+/** Duplicate pulls no longer refund 墨玉 — only 墨痕 (see MARK_TRICKLE / MARK_OVERFLOW). Kept at 0 so PullCard.refund stays typed. */
 export const DUP_REFUND: Record<Rarity, number> = {
-  R: 20,
-  S: 80,
-  SS: 360,
-  SSR: 600,
+  R: 0,
+  S: 0,
+  SS: 0,
+  SSR: 0,
 };
 
 export const RANK: Record<Rarity, number> = {
@@ -40,6 +41,8 @@ export type PullCard = {
   marks?: number;
   /** 墨玉 paid for the bond tier(s) this copy raised (TIER_UP_INK each, once per tier per character). */
   tierInk?: number;
+  /** This copy came after 定情 (六階): the 緣分 is complete and the whole copy became 墨痕. */
+  overflow?: boolean;
 };
 
 /* ---------------- 緣分升階 墨玉 ---------------- */

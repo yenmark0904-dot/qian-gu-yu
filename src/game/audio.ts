@@ -1,5 +1,7 @@
+import { storyVoiceChunks, storyVoiceLines, storyVoiceProfile, storyVoiceSpokenText } from "./story-voice.ts";
+import { STORY_VOICE_LANG } from "./story-voice-cast.ts";
 import type { Rarity } from "./data";
-import { VOICE_JA, VOICE_LOVE_JA } from "./voice-ja.ts";
+import { voiceFallback } from "./voice-zh.ts";
 import type { VoiceEnd, VoiceHandle } from "./voice-timing.ts";
 
 let ctx: AudioContext | null = null;
@@ -261,9 +263,9 @@ export function playBonusDone(muted: boolean) {
   bell(audio, penta(14), t + 0.14, 1.0, 0.035);
 }
 
-/* ── Voices (SSR/SS only): pre-rendered Japanese neural TTS (public/voice/*.mp3, texts in
- * voice-ja.ts); if a file cannot play, fall back to the browser's ja-JP speech synthesis of the
- * same Japanese text. Characters without a Japanese text (S, R) never request audio. */
+/* ── Voices (SSR/SS only): Chinese listening-trial mp3s in public/voice/.
+ * Original Japanese clips remain in /workspace/bak/voice-ja-mp3/; voice-ja.ts keeps their text.
+ * Browser fallback follows STORY_VOICE_LANG. S / R remain silent. */
 let voiceEl: HTMLAudioElement | null = null; // one shared element: iOS unlocks it once (primeVoice) and it stays usable
 let voiceStop: (() => void) | null = null; // settles the current clip's handle as "stopped"
 let primed = false;
@@ -297,15 +299,14 @@ export function primeVoice() {
 export function stopVoice() {
   const settle = voiceStop;
   voiceStop = null;
+  settle?.();
   if (voiceEl) voiceEl.pause();
   if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-  settle?.();
 }
 export type VoiceClip = "assist" | "line" | "love";
 /** URL of a voice clip, or null when the character has none (S / R). */
 export function voiceSrc(id: string, clip: VoiceClip = "assist"): string | null {
-  const text = clip === "love" ? VOICE_LOVE_JA[id] : VOICE_JA[id];
-  if (!text) return null;
+  if (!voiceFallback(id, "", clip)) return null;
   return clip === "assist" ? `/voice/${id}.mp3` : `/voice/${id}-${clip}.mp3`;
 }
 export function preloadVoice(id: string, clip: VoiceClip = "assist") {
@@ -316,22 +317,25 @@ export function preloadVoice(id: string, clip: VoiceClip = "assist") {
   a.src = src;
 }
 /**
- * Play a character's Japanese voice clip (stops any other). Returns a handle whose `done` settles when the clip ends,
- * fails (load error / autoplay blocked: the browser's ja-JP speech synthesis then reads the text, untimed) or is
+ * Play a character's Chinese-trial voice clip (stops any other). Returns a handle whose `done` settles when the clip ends,
+ * fails (load error / autoplay blocked: the browser's language-matched speech synthesis then reads the text, untimed) or is
  * stopped; null when muted, server-side or the character is unvoiced (S / R).
  */
-export function playVoice(id: string, _line: string, muted: boolean, clip: VoiceClip = "assist"): VoiceHandle | null {
+export function playVoice(id: string, line: string, muted: boolean, clip: VoiceClip = "assist"): VoiceHandle | null {
   const src = voiceSrc(id, clip);
   if (typeof window === "undefined" || muted || !src) return null;
-  const ja = (clip === "love" ? VOICE_LOVE_JA[id] : VOICE_JA[id])!;
+  const fallback = voiceFallback(id, line, clip);
   stopVoice();
   const speak = () => {
-    if (!("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance(ja);
-    u.lang = "ja-JP";
+    if (!("speechSynthesis" in window) || !fallback) return;
+    const u = new SpeechSynthesisUtterance(fallback.text);
+    u.lang = fallback.lang;
     u.rate = 0.9;
     u.pitch = 0.8;
-    const v = window.speechSynthesis.getVoices().find((x) => /^ja/i.test(x.lang));
+    const voices = window.speechSynthesis.getVoices();
+    const prefix = fallback.lang.split("-")[0];
+    const v = voices.find(x => x.lang.replace("_", "-").toLowerCase() === fallback.lang.toLowerCase())
+      ?? voices.find(x => x.lang.toLowerCase().startsWith(prefix));
     if (v) u.voice = v;
     window.speechSynthesis.speak(u);
   };
@@ -367,4 +371,136 @@ export function playVoice(id: string, _line: string, muted: boolean, clip: Voice
       if (voiceStop === stopThis) stopVoice();
     },
   };
+}
+
+const storyVoiceCache = new Map<string, Blob>();
+const STORY_VOICE_CACHE_MAX = 80;
+
+function rememberStoryVoice(key: string, blob: Blob) {
+  if (storyVoiceCache.has(key)) storyVoiceCache.delete(key);
+  storyVoiceCache.set(key, blob);
+  while (storyVoiceCache.size > STORY_VOICE_CACHE_MAX) {
+    const first = storyVoiceCache.keys().next().value;
+    if (first === undefined) break;
+    storyVoiceCache.delete(first);
+  }
+}
+
+function speakStoryVoiceSynth(text: string, speaker: string, onDone: (end: VoiceEnd) => void, isCurrent: () => boolean) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+    onDone("failed");
+    return;
+  }
+  const synth = window.speechSynthesis;
+  const chunks = storyVoiceChunks(text);
+  if (!chunks.length) {
+    onDone("ended");
+    return;
+  }
+  const profile = storyVoiceProfile(speaker);
+  let current: SpeechSynthesisUtterance | null = null;
+  const speak = (index: number) => {
+    if (!isCurrent()) return;
+    if (index >= chunks.length) { onDone("ended"); return; }
+    const utterance = new window.SpeechSynthesisUtterance(chunks[index]);
+    current = utterance;
+    utterance.lang = STORY_VOICE_LANG === "zh" ? "zh-TW" : "ja-JP";
+    utterance.pitch = profile.pitch;
+    utterance.rate = profile.rate;
+    const voices = synth.getVoices();
+    const norm = (lang: string) => lang.replace(/_/g, "-").toLowerCase();
+    const prefix = STORY_VOICE_LANG === "zh" ? "zh" : "ja";
+    const voice = voices.find(v => norm(v.lang) === norm(utterance.lang))
+      ?? voices.find(v => norm(v.lang).startsWith(prefix));
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => speak(index + 1);
+    utterance.onerror = () => onDone("failed");
+    try { synth.speak(utterance); } catch { onDone("failed"); }
+  };
+  const start = () => {
+    if (!isCurrent()) return;
+    speak(0);
+  };
+  if (synth.getVoices().length) start();
+  else {
+    const ready = () => {
+      synth.removeEventListener("voiceschanged", ready);
+      start();
+    };
+    synth.addEventListener("voiceschanged", ready);
+    window.setTimeout(ready, 300);
+  }
+  void current;
+}
+
+/** Read spoken story lines via ElevenLabs, sharing the exclusive voice channel with love clips. */
+export function playStoryVoice(text: string, speaker: string, muted: boolean): VoiceHandle | null {
+  stopVoice();
+  if (typeof window === "undefined" || muted || !text.trim()) return null;
+  const spoken = storyVoiceLines(text).join("。");
+  if (!spoken) return null;
+  let over = false;
+  let objectUrl: string | null = null;
+  let resolve!: (end: VoiceEnd) => void;
+  const done = new Promise<VoiceEnd>((settle) => { resolve = settle; });
+  const settle = (end: VoiceEnd) => {
+    if (over) return;
+    over = true;
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+      objectUrl = null;
+    }
+    if (voiceStop === stopThis) voiceStop = null;
+    resolve(end);
+  };
+  const stopThis = () => settle("stopped");
+  const isCurrent = () => !over && voiceStop === stopThis;
+  voiceStop = stopThis;
+  const playBlob = (blob: Blob) => {
+    if (!isCurrent()) return;
+    const a = sharedVoice();
+    const url = URL.createObjectURL(blob);
+    objectUrl = url;
+    const onEnded = () => {
+      a.removeEventListener("ended", onEnded);
+      a.removeEventListener("error", onError);
+      settle("ended");
+    };
+    const onError = () => {
+      a.removeEventListener("ended", onEnded);
+      a.removeEventListener("error", onError);
+      if (!isCurrent()) return;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+      speakStoryVoiceSynth(storyVoiceSpokenText(text) || text, speaker, settle, isCurrent);
+    };
+    a.addEventListener("ended", onEnded);
+    a.addEventListener("error", onError);
+    a.volume = 1;
+    a.src = url;
+    void a.play().catch(onError);
+  };
+  const cacheKey = `${STORY_VOICE_LANG}\0${speaker}\0${spoken}`;
+  const cached = storyVoiceCache.get(cacheKey);
+  if (cached) {
+    playBlob(cached);
+    return { done, stop: () => { if (voiceStop === stopThis) stopVoice(); } };
+  }
+  void fetch("/api/story-voice", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: spoken, speaker }),
+  }).then(async (res) => {
+    if (!isCurrent()) return;
+    if (!res.ok) throw new Error("tts");
+    const blob = await res.blob();
+    if (blob.size < 64) throw new Error("tts");
+    rememberStoryVoice(cacheKey, blob);
+    playBlob(blob);
+  }).catch(() => {
+    if (isCurrent()) speakStoryVoiceSynth(storyVoiceSpokenText(text) || text, speaker, settle, isCurrent);
+  });
+  return { done, stop: () => { if (voiceStop === stopThis) stopVoice(); } };
 }

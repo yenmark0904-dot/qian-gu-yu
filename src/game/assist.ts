@@ -59,14 +59,16 @@ export function waveEnergy(w: Pick<Wave, "removed" | "effects" | "created">, cha
  * Energy needed for one 發動. Rarer skills hit harder but take longer to charge;
  * 緣分 shortens the charge (貳 −8%, 參 −16%).
  */
-export const CHARGE_BASE: Record<Rarity, number> = { R: 55, S: 65, SS: 85, SSR: 75 };
+export const CHARGE_BASE: Record<Rarity, number> = { R: 55, S: 65, SS: 75, SSR: 75 };
 export const CHARGE_STEP = [1, 0.92, 0.84] as const;
 export function chargeCost(rarity: Rarity, copies: number): number {
   return Math.round(CHARGE_BASE[rarity] * CHARGE_STEP[skillStep(copies)]);
 }
 
+/** Scheme C: only a fresh fight grants starting energy; spending still empties the ring. */
+export const startEnergy = (rarity?: Rarity): number => (rarity === "SSR" ? 20 : rarity === "SS" ? 10 : 0);
 export type Charge = { energy: number; cost: number; uses: number };
-export const freshCharge = (cost: number): Charge => ({ energy: 0, cost, uses: 0 });
+export const freshCharge = (cost: number, rarity?: Rarity): Charge => ({ energy: Math.min(cost, startEnergy(rarity)), cost, uses: 0 });
 export function addEnergy(c: Charge, amount: number): Charge {
   if (amount <= 0 || c.energy >= c.cost) return c;
   return { ...c, energy: Math.min(c.cost, c.energy + amount) };
@@ -74,8 +76,9 @@ export function addEnergy(c: Charge, amount: number): Charge {
 export const isFull = (c: Charge) => c.cost > 0 && c.energy >= c.cost;
 /** 0..1 for the ring. */
 export const chargeRatio = (c: Charge) => (c.cost > 0 ? Math.min(1, c.energy / c.cost) : 0);
-export function canActivate(c: Charge, phase: string, fx: AssistFx | null, movesLeft: number): boolean {
-  return !!fx && isFull(c) && phase === "play" && movesLeft > 0;
+/** `alive` = the player's 氣血 (or, in 討伐, steps) left — no casting once it is gone. */
+export function canActivate(c: Charge, phase: string, fx: AssistFx | null, alive: number): boolean {
+  return !!fx && isFull(c) && phase === "play" && alive > 0;
 }
 /** After 發動: the ring empties and starts charging again. */
 export const spend = (c: Charge): Charge => ({ ...c, energy: 0, uses: c.uses + 1 });
@@ -94,10 +97,11 @@ export type Activation = {
   /** Seal layers cracked by the skill itself (not counting strike cascades). */
   cracked: number;
   crackHits: Pos[];
-  moves: number;
+  /** 氣血 to restore (the caller caps it at max HP). */
+  heal: number;
 };
 
-/** Apply a skill now. Order: strike → special jades drop in → seals crack → +moves. */
+/** Apply a skill now. Order: strike → special jades drop in → seals crack → heal. */
 export function activateSkill(board: Board, fx: AssistFx, rng: Rng = Math.random): Activation {
   let b = board;
   let strike: Activation["strike"] = null;
@@ -125,13 +129,13 @@ export function activateSkill(board: Board, fx: AssistFx, rng: Rng = Math.random
     crackHits = c.hits;
   }
   if (!hasMove(b)) b = reshuffle(b, rng);
-  return { board: b, strike, beforeGifts, afterGifts, gifts, cracked, crackHits, moves: fx.moves };
+  return { board: b, strike, beforeGifts, afterGifts, gifts, cracked, crackHits, heal: fx.heal };
 }
 
 /** Short labels for what a tap did, shown as floating text. */
 export function activationLabels(fx: AssistFx): string[] {
   const out: string[] = [];
-  if (fx.moves) out.push(`+${fx.moves} 步`);
+  if (fx.heal) out.push(`+${fx.heal} 血`);
   if (fx.mult > 1) out.push(`得分 ×${fx.mult.toFixed(2)}`);
   if (fx.reward) out.push(`星賞 +${Math.round(fx.reward * 100)}%`);
   return out;
